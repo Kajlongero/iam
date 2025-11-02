@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { PassportStrategy } from "@nestjs/passport";
-import { JWT_CONSTANTS } from "../constants/jwt.constants";
+import { JWT_CONSTANTS, JWT_EXTRACT_FIELDS } from "../constants/jwt.constants";
 
 @Injectable()
 export class AccessJwtStrategyService extends PassportStrategy(
@@ -13,7 +13,9 @@ export class AccessJwtStrategyService extends PassportStrategy(
   constructor(private readonly configService: ConfigService) {
     super({
       secretOrKey: JWT_CONSTANTS.RSA_PRIVATE_KEY_SECRET,
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromHeader(
+        JWT_EXTRACT_FIELDS.ACCESS_TOKEN.HEADER
+      ),
       ignoreExpiration: false,
     });
   }

@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["access_control", "management", "public", "security", "utils"]
+}
+
+model MethodPermissions {
+  methodId     String      @map("method_id") @db.Uuid
+  permissionId String      @map("permission_id") @db.Uuid
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  method       Methods     @relation(fields: [methodId], references: [id])
+  permission   Permissions @relation(fields: [permissionId], references: [id])
+
+  @@id([methodId, permissionId])
+  @@map("method_permissions")
+  @@schema("access_control")
+}
+
+model Methods {
+  id               String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String              @db.VarChar(64)
+  isActive         Boolean             @default(true) @map("is_active")
+  description      String?
+  objectId         String              @map("object_id") @db.Uuid
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  methodPermission MethodPermissions[]
+  object           Objects             @relation(fields: [objectId], references: [id])
+
+  @@unique([name, objectId])
+  @@index([name], map: "idx_access_control_methods_name")
+  @@map("methods")
+  @@schema("access_control")
+}
+
+model Objects {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  description String?
+  name        String    @db.VarChar(64)
+  isActive    Boolean   @default(true) @map("is_active")
+  systemId    String    @map("system_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  method      Methods[]
+  system      Systems   @relation(fields: [systemId], references: [id])
+
+  @@unique([name, systemId])
+  @@index([name], map: "idx_objects_name")
+  @@index([systemId], map: "idx_objects_system_id")
+  @@map("objects")
+  @@schema("access_control")
+}
+
+model PermissionAssignmentRules {
+  systemId           String      @map("system_id") @db.Uuid
+  permissionId       String      @map("permission_id") @db.Uuid
+  minimumOwnerRoleId String      @map("minimum_owner_role_id") @db.Uuid
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  role               Roles       @relation(fields: [minimumOwnerRoleId], references: [id])
+  permission         Permissions @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  system             Systems     @relation(fields: [systemId], references: [id])
+
+  @@id([permissionId, systemId])
+  @@map("permission_assignment_rules")
+  @@schema("access_control")
+}
+
+model Permissions {
+  id                       String                      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                     String                      @db.VarChar(128)
+  description              String?
+  isGlobal                 Boolean                     @default(false) @map("is_global")
+  isEditable               Boolean                     @default(true) @map("is_editable")
+  systemId                 String?                     @map("system_id") @db.Uuid
+  createdAt                DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  methodPermission         MethodPermissions[]
+  permissionAssignmentRule PermissionAssignmentRules[]
+  system                   Systems?                    @relation(fields: [systemId], references: [id], onDelete: Restrict)
+  platformRolePermission   PlatformRolePermissions[]
+  rolePermission           RolePermissions[]
+
+  @@unique([systemId, name])
+  @@map("permissions")
+  @@schema("access_control")
+}
+
+model PlatformRolePermissions {
+  permissionId   String        @map("permission_id") @db.Uuid
+  platformRoleId String        @map("platform_role_id") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  permission     Permissions   @relation(fields: [permissionId], references: [id])
+  platformRole   PlatformRoles @relation(fields: [platformRoleId], references: [id])
+
+  @@id([permissionId, platformRoleId])
+  @@map("platform_role_permissions")
+  @@schema("access_control")
+}
+
+model PlatformRoles {
+  id                     String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String                    @unique @db.VarChar
+  description            String?
+  parentPlatformRoleId   String?                   @map("parent_platform_role_id") @db.Uuid
+  createdAt              DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  platformRolePermission PlatformRolePermissions[]
+  parent                 PlatformRoles?            @relation("PlatformRoleHierarchy", fields: [parentPlatformRoleId], references: [id])
+  child                  PlatformRoles[]           @relation("PlatformRoleHierarchy")
+  clientPlatformRole     ClientPlatformRoles[]
+
+  @@index([name], map: "idx_platform_roles_name")
+  @@map("platform_roles")
+  @@schema("access_control")
+}
+
+model RolePermissions {
+  roleId       String      @map("role_id") @db.Uuid
+  permissionId String      @map("permission_id") @db.Uuid
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt    DateTime?   @map("expires_at") @db.Timestamptz(6)
+  isActive     Boolean     @default(true) @map("is_active")
+  permission   Permissions @relation(fields: [permissionId], references: [id])
+  role         Roles       @relation(fields: [roleId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@index([permissionId], map: "idx_access_control_role_permission_permission_id")
+  @@index([roleId], map: "idx_access_control_role_permission_role_id")
+  @@map("role_permissions")
+  @@schema("access_control")
+}
+
+model Roles {
+  id                       String                      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                     String                      @db.VarChar(48)
+  description              String?
+  isDefault                Boolean                     @default(false) @map("is_default")
+  systemId                 String?                     @map("system_id") @db.Uuid
+  parentRoleId             String?                     @map("parent_role_id") @db.Uuid
+  createdAt                DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime?                   @map("updated_at") @db.Timestamptz(6)
+  deletedAt                DateTime?                   @map("deleted_at") @db.Timestamptz(6)
+  permissionAssignmentRule PermissionAssignmentRules[]
+  rolePermission           RolePermissions[]
+  parent                   Roles?                      @relation("UserRoleHierarchy", fields: [parentRoleId], references: [id])
+  child                    Roles[]                     @relation("UserRoleHierarchy")
+  system                   Systems?                    @relation(fields: [systemId], references: [id], onDelete: Restrict)
+  systemUserRole           SystemUserRoles[]
+
+  @@unique([systemId, name])
+  @@index([systemId], map: "idx_access_control_roles_system_id")
+  @@map("roles")
+  @@schema("access_control")
+}
+
+model SystemUserRoles {
+  userId    String    @map("user_id") @db.Uuid
+  systemId  String    @map("system_id") @db.Uuid
+  roleId    String    @map("role_id") @db.Uuid
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  role      Roles     @relation(fields: [roleId], references: [id])
+  system    Systems   @relation(fields: [systemId], references: [id])
+  user      Users     @relation(fields: [userId], references: [id])
+
+  @@id([userId, systemId, roleId])
+  @@map("system_user_roles")
+  @@schema("access_control")
+}
+
+model ClientPlatformRoles {
+  systemId       String        @map("system_id") @db.Uuid
+  platformRoleId String        @map("platform_role_id") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  platformRole   PlatformRoles @relation(fields: [platformRoleId], references: [id])
+  system         Systems       @relation(fields: [systemId], references: [id])
+
+  @@id([systemId, platformRoleId])
+  @@map("client_platform_roles")
+  @@schema("management")
+}
+
+model Providers {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name         String   @unique @db.VarChar(50)
+  description  String?
+  strategyType String   @map("strategy_type") @db.VarChar(24)
+  clientId     String?  @map("client_id") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  auth         Auth[]
+
+  @@map("providers")
+  @@schema("management")
+}
+
+model Status {
+  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String?       @unique @db.VarChar(24)
+  description String?
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  systemUser  SystemUsers[]
+
+  @@index([name], map: "idx_status_name")
+  @@map("status")
+  @@schema("management")
+}
+
+model Systems {
+  id                       String                      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  url                      String
+  clientId                 String                      @unique @map("client_id") @db.VarChar(96)
+  clientSecret             String                      @map("client_secret") @db.VarChar(255)
+  redirectUrl              String                      @map("redirect_url") @db.VarChar(255)
+  createdAt                DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime?                   @map("updated_at") @db.Timestamptz(6)
+  deletedAt                DateTime?                   @map("deleted_at") @db.Timestamptz(6)
+  object                   Objects[]
+  permissionAssignmentRule PermissionAssignmentRules[]
+  permission               Permissions[]
+  role                     Roles[]
+  systemUserRole           SystemUserRoles[]
+  clientPlatformRole       ClientPlatformRoles[]
+  session                  Sessions[]
+  systemUser               SystemUsers[]
+
+  @@index([clientId], map: "idx_systems_client_id")
+  @@index([url], map: "idx_systems_url")
+  @@map("systems")
+  @@schema("management")
+}
+
+model Auth {
+  id                   String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                String     @unique @db.VarChar(255)
+  password             String?    @db.VarChar(255)
+  lastLoginAt          DateTime?  @map("last_login_at") @db.Timestamptz(6)
+  lockedEndTime        DateTime?  @map("locked_end_time") @db.Timestamptz(6)
+  failedLoginAttempts  Int        @default(0) @map("failed_login_attempts")
+  lastPasswordChangeAt DateTime?  @map("last_password_change_at") @db.Timestamptz(6)
+  userId               String     @map("user_id") @db.Uuid
+  providerId           String?    @map("provider_id") @db.Uuid
+  providerUniqueId     String?    @map("provider_unique_id") @db.VarChar(128)
+  provider             Providers? @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  user                 Users      @relation(fields: [userId], references: [id])
+  session              Sessions[]
+
+  @@unique([providerId, providerUniqueId])
+  @@index([email], map: "idx_auth_email")
+  @@index([userId], map: "idx_auth_user_id")
+  @@map("auth")
+  @@schema("security")
+}
+
+model Sessions {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  authId       String   @map("auth_id") @db.Uuid
+  isActive     Boolean  @default(true) @map("is_active")
+  systemId     String?  @map("system_id") @db.Uuid
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz(6)
+  validUntil   DateTime @map("valid_until") @db.Timestamptz(6)
+  lastUsedAt   DateTime @default(now()) @map("last_used_at") @db.Timestamptz(6)
+  refreshToken String   @map("refresh_token") @db.VarChar(64)
+  ipAddress    String   @map("ip_address") @db.VarChar(45)
+  userAgent    String   @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  auth         Auth     @relation(fields: [authId], references: [id])
+  system       Systems? @relation(fields: [systemId], references: [id], onDelete: Restrict)
+
+  @@index([authId, refreshToken], map: "idx_sessions_auth_id_refresh_token")
+  @@index([refreshToken], map: "idx_sessions_refresh_token")
+  @@index([systemId], map: "idx_sessions_system_id")
+  @@index([authId], map: "idx_sessions_auth_id")
+  @@map("sessions")
+  @@schema("security")
+}
+
+model SystemUsers {
+  userId    String   @map("user_id") @db.Uuid
+  systemId  String   @map("system_id") @db.Uuid
+  statusId  String   @map("status_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  status    Status   @relation(fields: [statusId], references: [id])
+  system    Systems  @relation(fields: [systemId], references: [id])
+  user      Users    @relation(fields: [userId], references: [id])
+
+  @@id([userId, systemId])
+  @@map("system_users")
+  @@schema("security")
+}
+
+model Users {
+  id               String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username         String?           @unique @db.VarChar(64)
+  isLocalPassword  Boolean           @default(false) @map("is_local_password")
+  isEmailConfirmed Boolean           @default(false) @map("is_email_confirmed")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime?         @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  systemUserRole   SystemUserRoles[]
+  auth             Auth[]
+  passwordReset    PasswordResets[]
+  systemUser       SystemUsers[]
+
+  @@map("users")
+  @@schema("security")
+}
+
+model PasswordResets {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  isUsed    Boolean  @default(false) @map("is_used")
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  tokenHash String   @unique @map("token_hash") @db.VarChar
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      Users    @relation(fields: [userId], references: [id])
+
+  @@index([tokenHash], map: "idx_password_resets_token_hash")
+  @@index([userId], map: "idx_password_resets_user_id")
+  @@map("password_resets")
+  @@schema("security")
+}

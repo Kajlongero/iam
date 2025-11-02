@@ -6,13 +6,20 @@ import { JwtModule, JwtService } from "@nestjs/jwt";
 
 import { StringValue } from "ms";
 
+import { SecurityController } from "./security.controller";
+
+import { SecurityService } from "./security.service";
 import { LocalStrategyService } from "./strategies/local.strategy.service";
 import { S2sJwtStrategyService } from "./strategies/s2s-jwt.strategy.service";
 import { AccessJwtStrategyService } from "./strategies/access-jwt.strategy.service";
 import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.service";
 
 import { JWT_TOKEN_PROVIDERS } from "./constants/provider-tokens.constants";
-import { JWT_CONSTANTS, JWT_EXPIRATION_TIMES } from "./constants/jwt.constants";
+import {
+  JWT_ALGORITHMS,
+  JWT_CONSTANTS,
+  JWT_EXPIRATION_TIMES,
+} from "./constants/jwt.constants";
 
 @Module({
   imports: [
@@ -39,9 +46,12 @@ import { JWT_CONSTANTS, JWT_EXPIRATION_TIMES } from "./constants/jwt.constants";
           JWT_EXPIRATION_TIMES.S2S_TOKEN_EXPIRATION_TIME
         );
 
+        const alg = JWT_ALGORITHMS.S2S_TOKEN;
+
         return new JwtService({
           privateKey: s2sTokenSecret,
           signOptions: {
+            algorithm: alg as "RS256",
             expiresIn,
           },
         });
@@ -58,9 +68,12 @@ import { JWT_CONSTANTS, JWT_EXPIRATION_TIMES } from "./constants/jwt.constants";
           JWT_EXPIRATION_TIMES.ACCESS_TOKEN_EXPIRATION_TIME
         );
 
+        const alg = JWT_ALGORITHMS.ACCESS_TOKEN;
+
         return new JwtService({
           privateKey: accessTokenSecret,
           signOptions: {
+            algorithm: alg as "RS256",
             expiresIn,
           },
         });
@@ -77,14 +90,18 @@ import { JWT_CONSTANTS, JWT_EXPIRATION_TIMES } from "./constants/jwt.constants";
           JWT_EXPIRATION_TIMES.REFRESH_TOKEN_EXPIRATION_TIME
         );
 
+        const alg = JWT_ALGORITHMS.REFRESH_TOKEN;
+
         return new JwtService({
           secret: refreshTokenSecret,
           signOptions: {
+            algorithm: alg as "HS256",
             expiresIn,
           },
         });
       },
     },
+    SecurityService,
   ],
   exports: [
     JwtModule,
@@ -97,5 +114,6 @@ import { JWT_CONSTANTS, JWT_EXPIRATION_TIMES } from "./constants/jwt.constants";
     JWT_TOKEN_PROVIDERS.ACCESS_TOKEN_PROVIDER,
     JWT_TOKEN_PROVIDERS.REFRESH_TOKEN_PROVIDER,
   ],
+  controllers: [SecurityController],
 })
 export class SecurityModule {}

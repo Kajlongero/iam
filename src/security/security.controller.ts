@@ -8,6 +8,6 @@ export class SecurityController {
 
   @Get("jwks.json")
   jwks() {
-    return this.securityService.jwks();
+    return this.securityService.getJwks();
   }
 }

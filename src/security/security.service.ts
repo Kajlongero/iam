@@ -1,28 +1,39 @@
-import { Injectable } from "@nestjs/common";
-
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+
+import { importSPKI, exportJWK, JWK } from "jose";
+
 import { JWT_ALGORITHMS, JWT_CONSTANTS } from "./constants/jwt.constants";
 
 @Injectable()
-export class SecurityService {
+export class SecurityService implements OnModuleInit {
+  private jwks: JWK | null = null;
+
   constructor(private readonly configService: ConfigService) {}
 
-  jwks() {
-    const publicKey: string = this.configService.getOrThrow(
+  async onModuleInit() {
+    const publicKeyPem: string = this.configService.getOrThrow(
       JWT_CONSTANTS.RSA_PUBLIC_KEY_SECRET
     );
 
+    try {
+      const key = await importSPKI(publicKeyPem, JWT_ALGORITHMS.ACCESS_TOKEN);
+      const jwk = await exportJWK(key);
+
+      this.jwks = {
+        ...jwk,
+        kid: "1",
+        use: "sig",
+        alg: JWT_ALGORITHMS.ACCESS_TOKEN,
+      };
+    } catch {
+      throw new Error("Error loading the public key");
+    }
+  }
+
+  getJwks() {
     return {
-      keys: [
-        {
-          kty: "RSA",
-          e: "AQAB",
-          use: "sig",
-          kid: "1",
-          alg: JWT_ALGORITHMS.S2S_TOKEN,
-          n: publicKey,
-        },
-      ],
+      keys: [this.jwks],
     };
   }
 }

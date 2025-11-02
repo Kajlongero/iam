@@ -1,0 +1,6 @@
+CREATE SCHEMA utils;
+CREATE SCHEMA security;
+CREATE SCHEMA management;
+CREATE SCHEMA access_control;
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 
 import { PassportModule } from "@nestjs/passport";
 import { JwtModule, JwtService } from "@nestjs/jwt";
@@ -16,12 +16,14 @@ import { JWT_CONSTANTS, JWT_EXPIRATION_TIMES } from "./constants/jwt.constants";
 
 @Module({
   imports: [
+    ConfigModule,
     JwtModule.register({}),
     PassportModule.register({
       defaultStrategy: "s2s-jwt",
     }),
   ],
   providers: [
+    ConfigService,
     LocalStrategyService,
     S2sJwtStrategyService,
     AccessJwtStrategyService,
@@ -91,6 +93,9 @@ import { JWT_CONSTANTS, JWT_EXPIRATION_TIMES } from "./constants/jwt.constants";
     S2sJwtStrategyService,
     AccessJwtStrategyService,
     RefreshJwtStrategyService,
+    JWT_TOKEN_PROVIDERS.S2S_TOKEN_PROVIDER,
+    JWT_TOKEN_PROVIDERS.ACCESS_TOKEN_PROVIDER,
+    JWT_TOKEN_PROVIDERS.REFRESH_TOKEN_PROVIDER,
   ],
 })
 export class SecurityModule {}

@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS security.password_resets (
 );
 
 CREATE INDEX idx_password_resets_user_id ON security.password_resets (user_id);
+CREATE INDEX idx_password_resets_token_hash ON security.password_resets (token_hash);
 
 CREATE TABLE IF NOT EXISTS security.auth (
   id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -175,6 +176,8 @@ CREATE TABLE IF NOT EXISTS access_control.permission_assignment_rules (
 CREATE TABLE IF NOT EXISTS access_control.role_permissions (
   role_id UUID NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE RESTRICT,
   permission_id UUID NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+  expires_at TIMESTAMPTZ, 
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
   PRIMARY KEY (role_id, permission_id)

@@ -16,6 +16,11 @@ export const JWT_ALGORITHMS = {
   REFRESH_TOKEN: "HS256",
 };
 
+export const JWT_SIGN_OPTIONS = {
+  ISSUER: "ISSUER",
+  AUDIENCE: "AUDIENCE",
+};
+
 export const JWT_EXTRACT_FIELDS = {
   ACCESS_TOKEN: {
     HEADER: "X-User-Credential",

@@ -16,8 +16,9 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
 
 import { JWT_TOKEN_PROVIDERS } from "./constants/provider-tokens.constants";
 import {
-  JWT_ALGORITHMS,
   JWT_CONSTANTS,
+  JWT_ALGORITHMS,
+  JWT_SIGN_OPTIONS,
   JWT_EXPIRATION_TIMES,
 } from "./constants/jwt.constants";
 
@@ -46,11 +47,16 @@ import {
           JWT_EXPIRATION_TIMES.S2S_TOKEN_EXPIRATION_TIME
         );
 
+        const iss: string = configService.getOrThrow(JWT_SIGN_OPTIONS.ISSUER);
+        const aud: string = configService.getOrThrow(JWT_SIGN_OPTIONS.AUDIENCE);
+
         const alg = JWT_ALGORITHMS.S2S_TOKEN;
 
         return new JwtService({
           privateKey: s2sTokenSecret,
           signOptions: {
+            issuer: iss,
+            audience: aud,
             algorithm: alg as "RS256",
             expiresIn,
           },
@@ -68,11 +74,16 @@ import {
           JWT_EXPIRATION_TIMES.ACCESS_TOKEN_EXPIRATION_TIME
         );
 
+        const iss: string = configService.getOrThrow(JWT_SIGN_OPTIONS.ISSUER);
+        const aud: string = configService.getOrThrow(JWT_SIGN_OPTIONS.AUDIENCE);
+
         const alg = JWT_ALGORITHMS.ACCESS_TOKEN;
 
         return new JwtService({
           privateKey: accessTokenSecret,
           signOptions: {
+            issuer: iss,
+            audience: aud,
             algorithm: alg as "RS256",
             expiresIn,
           },
@@ -89,12 +100,16 @@ import {
         const expiresIn: StringValue = configService.getOrThrow(
           JWT_EXPIRATION_TIMES.REFRESH_TOKEN_EXPIRATION_TIME
         );
+        const iss: string = configService.getOrThrow(JWT_SIGN_OPTIONS.ISSUER);
+        const aud: string = configService.getOrThrow(JWT_SIGN_OPTIONS.AUDIENCE);
 
         const alg = JWT_ALGORITHMS.REFRESH_TOKEN;
 
         return new JwtService({
           secret: refreshTokenSecret,
           signOptions: {
+            issuer: iss,
+            audience: aud,
             algorithm: alg as "HS256",
             expiresIn,
           },

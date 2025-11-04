@@ -10,7 +10,7 @@ import { PreloadPermissionsService } from "./providers/preload-permissions.servi
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 
 @Module({
-  imports: [NestCacheModule, PrismaModule],
+  imports: [NestCacheModule.register({ nonBlocking: true }), PrismaModule],
   providers: [
     CacheService,
     PreloadRolesService,

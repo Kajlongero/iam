@@ -1,0 +1,1 @@
+export const SYSTEMS_TOKEN = "SYSTEMS_CACHE";

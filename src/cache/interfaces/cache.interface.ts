@@ -32,7 +32,7 @@ export type IPermissions = Pick<
 >;
 
 export type IPermissionsScope = {
-  minimumRole?: Pick<IUserRoles, "id" | "name">[];
+  permissionAssignmentRule?: Pick<IUserRoles, "id" | "name">[];
 } & IPermissions;
 
 export type IRolesNode = {

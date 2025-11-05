@@ -30,10 +30,11 @@ export class PreloadSystemsService implements CachePreloader<Systems> {
       const system = systems?.has(s.clientId);
 
       const initialState: IAMCache = {
-        roles: null,
+        roles: new Map(),
         system: s,
         objects: new Map(),
         permissions: new Map(),
+        rolesHierarchy: null,
       };
 
       if (!system) systems?.set(s.clientId, initialState);

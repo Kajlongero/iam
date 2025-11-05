@@ -50,14 +50,21 @@ export class PreloadPermissionsService
       },
     });
 
-    return data as IPermissionSystemScope[];
+    const plain = data.map((d) => {
+      return {
+        ...d,
+        permissionAssignmentRule: d.permissionAssignmentRule.map((p) => p.role),
+      };
+    });
+
+    return plain as unknown as IPermissionSystemScope[];
   }
 
   async format(data: IPermissionSystemScope[]): Promise<void> {
     const systems = await this.cacheManager.get<IAM>(SYSTEMS_TOKEN);
 
     data.forEach((d) => {
-      const { system, minimumRole, ...permission } = d;
+      const { system, permissionAssignmentRule, ...permission } = d;
 
       if (!systems?.has(system.clientId)) return;
 
@@ -68,7 +75,7 @@ export class PreloadPermissionsService
 
       permissions?.set(permission.name, {
         ...permission,
-        minimumRole,
+        permissionAssignmentRule,
       });
     });
   }

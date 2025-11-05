@@ -23,7 +23,7 @@ export type IMethods = Pick<
 
 export type IUserRoles = Pick<
   Roles,
-  "id" | "name" | "isDefault" | "description"
+  "id" | "name" | "isDefault" | "description" | "parentRoleId"
 >;
 
 export type IPermissions = Pick<
@@ -35,10 +35,10 @@ export type IPermissionsScope = {
   permissionAssignmentRule?: Pick<IUserRoles, "id" | "name">[];
 } & IPermissions;
 
-export type IRolesNode = {
+export type IRolesTree = {
   data: IUserRoles;
   parent: IUserRoles | null;
-  children: IUserRoles[];
+  children: IRolesTree[];
 };
 
 export type IObjectMethod = {
@@ -46,10 +46,11 @@ export type IObjectMethod = {
 } & IObjects;
 
 export type IAMCache = {
-  roles: null;
+  roles: Map<string, IUserRoles>;
   system: Pick<ISystems, "clientId" | "redirectUrl">;
   objects: Map<string, IObjectMethod>;
   permissions: Map<string, IPermissionsScope>;
+  rolesHierarchy: IRolesTree | null;
 };
 
 export declare type IAM = Map<string, IAMCache>;

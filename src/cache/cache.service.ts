@@ -4,9 +4,10 @@ import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
 
 import { SYSTEMS_TOKEN } from "./tokens";
 
+import { PreloadRolesService } from "./providers/preload-roles.service";
 import { PreloadSystemsService } from "./providers/preload-systems.service";
-import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 import { PreloadPermissionsService } from "./providers/preload-permissions.service";
+import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 
 @Injectable()
 export class CacheService implements OnModuleInit {
@@ -14,6 +15,7 @@ export class CacheService implements OnModuleInit {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
 
     private readonly preloadSystemsService: PreloadSystemsService,
+    private readonly preloadSystemsRolesService: PreloadRolesService,
     private readonly preloadSystemsPermissionsService: PreloadPermissionsService,
     private readonly preloadSystemsObjectsAndMethodsService: PreloadObjectMethodsService
   ) {}
@@ -34,6 +36,9 @@ export class CacheService implements OnModuleInit {
       this.preloadSystemsPermissionsService
         .preload()
         .then((data) => this.preloadSystemsPermissionsService.format(data)),
+      this.preloadSystemsRolesService
+        .preload()
+        .then((data) => this.preloadSystemsRolesService.format(data)),
     ]);
   }
 }

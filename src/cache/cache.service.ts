@@ -8,6 +8,7 @@ import { PreloadRolesService } from "./providers/preload-roles.service";
 import { PreloadSystemsService } from "./providers/preload-systems.service";
 import { PreloadPermissionsService } from "./providers/preload-permissions.service";
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
+import { IAM } from "./interfaces/cache.interface";
 
 @Injectable()
 export class CacheService implements OnModuleInit {
@@ -40,5 +41,33 @@ export class CacheService implements OnModuleInit {
         .preload()
         .then((data) => this.preloadSystemsRolesService.format(data)),
     ]);
+  }
+
+  async getSystems(): Promise<IAM> {
+    return (await this.cacheManager.get<IAM>(SYSTEMS_TOKEN)) as IAM;
+  }
+
+  async getSystemByClientId(clientId: string) {
+    return (await this.getSystems()).get(clientId);
+  }
+
+  async getClientSystemRoles(clientId: string) {
+    return (await this.getSystemByClientId(clientId))?.roles;
+  }
+
+  async getClientSystemRoleByName(clientId: string, roleName: string) {
+    return (await this.getClientSystemRoles(clientId))?.get(roleName);
+  }
+
+  async getClientSystemPermissions(clientId: string) {
+    return (await this.getSystemByClientId(clientId))?.permissions;
+  }
+
+  async getClientSystemObjectsAndMethods(clientId: string) {
+    return (await this.getSystemByClientId(clientId))?.objects;
+  }
+
+  async getClientSystemRolesHierarchy(clientId: string) {
+    return (await this.getSystemByClientId(clientId))?.rolesHierarchy;
   }
 }

@@ -1,1 +1,5 @@
 export const SYSTEMS_TOKEN = "SYSTEMS_CACHE";
+
+export const IAM_CORE_SYSTEM_NAME = "IAM_CORE";
+
+export const IAM_CORE_UI_SYSTEM_NAME = "IAM_CORE_UI";

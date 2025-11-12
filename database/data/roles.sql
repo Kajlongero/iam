@@ -11,7 +11,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   );
 
@@ -42,7 +42,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   );
 
@@ -73,7 +73,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   ),
   (
@@ -94,7 +94,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   ),
   (
@@ -115,7 +115,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   );
 

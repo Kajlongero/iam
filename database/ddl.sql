@@ -9,13 +9,25 @@ CREATE TABLE IF NOT EXISTS
 CREATE INDEX idx_status_name ON management.status (name);
 
 CREATE TABLE IF NOT EXISTS
+  security.users (
+    id UUID NOT NULL PRIMARY KEY,
+    is_local_password BOOLEAN NOT NULL DEFAULT FALSE,
+    is_email_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ
+  );
+
+CREATE TABLE IF NOT EXISTS
   management.applications (
     id SERIAL PRIMARY KEY,
     url TEXT NOT NULL,
+    name VARCHAR(96) NOT NULL,
     client_id VARCHAR(96) NOT NULL UNIQUE,
     client_secret VARCHAR(255) NOT NULL,
     redirect_url VARCHAR(255) NOT NULL,
     status_id SMALLINT NOT NULL REFERENCES management.status (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    creator_user_id UUID NOT NULL REFERENCES security.users (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ
@@ -115,16 +127,6 @@ CREATE TABLE IF NOT EXISTS
       method_id,
       application_id
     )
-  );
-
-CREATE TABLE IF NOT EXISTS
-  security.users (
-    id UUID NOT NULL PRIMARY KEY,
-    is_local_password BOOLEAN NOT NULL DEFAULT FALSE,
-    is_email_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ
   );
 
 CREATE TABLE IF NOT EXISTS

@@ -4,6 +4,28 @@ TRUNCATE TABLE security.users RESTART IDENTITY CASCADE;
 
 TRUNCATE TABLE management.applications RESTART IDENTITY CASCADE;
 
+DROP TABLE IF EXISTS access_control.roles_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS access_control.permissions_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS access_control.objects_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS access_control.pa_rules_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS access_control.rs_max_scopes_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS access_control.rs_exposed_perms_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS access_control.rs_consumption_perms_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS access_control.application_user_roles_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS management.resource_servers_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS security.application_users_iam_core_ui_2 CASCADE;
+
+DROP TABLE IF EXISTS security.sessions_iam_core_ui_2 CASCADE;
+
 INSERT INTO
   security.users (id, is_local_password, is_email_confirmed)
 VALUES
@@ -96,52 +118,52 @@ VALUES
   );
 
 CREATE TABLE
-  management.resource_servers_ui_2 PARTITION OF management.resource_servers FOR
+  management.resource_servers_iam_core_ui_2 PARTITION OF management.resource_servers FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  access_control.objects_ui_2 PARTITION OF access_control.objects FOR
+  access_control.objects_iam_core_ui_2 PARTITION OF access_control.objects FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  security.application_users_ui_2 PARTITION OF security.application_users FOR
+  security.sessions_iam_core_ui_2 PARTITION OF security.sessions FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  security.sessions_ui_2 PARTITION OF security.sessions FOR
+  access_control.permissions_iam_core_ui_2 PARTITION OF access_control.permissions FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  access_control.permissions_ui_2 PARTITION OF access_control.permissions FOR
+  access_control.roles_iam_core_ui_2 PARTITION OF access_control.roles FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  access_control.roles_ui_2 PARTITION OF access_control.roles FOR
+  access_control.application_user_roles_iam_core_ui_2 PARTITION OF access_control.application_user_roles FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  access_control.pa_rules_ui_2 PARTITION OF access_control.permission_assignment_rules FOR
+  access_control.pa_rules_iam_core_ui_2 PARTITION OF access_control.permission_assignment_rules FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  access_control.rs_max_scopes_ui_2 PARTITION OF access_control.rs_max_allowed_scopes FOR
+  access_control.rs_max_scopes_iam_core_ui_2 PARTITION OF access_control.rs_max_allowed_scopes FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  access_control.rs_exposed_perms_ui_2 PARTITION OF access_control.rs_exposed_permissions FOR
+  access_control.rs_exposed_perms_iam_core_ui_2 PARTITION OF access_control.rs_exposed_permissions FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  access_control.rs_consumption_perms_ui_2 PARTITION OF access_control.rs_consumption_permissions FOR
+  access_control.rs_consumption_perms_iam_core_ui_2 PARTITION OF access_control.rs_consumption_permissions FOR
 VALUES
   IN (2);
 
@@ -158,7 +180,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   );
 
@@ -189,7 +211,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   );
 
@@ -220,7 +242,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   ),
   (
@@ -241,7 +263,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
     )
   ),
   (
@@ -262,6 +284,29 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
+        client_id = ''
+    )
+  );
+
+INSERT INTO
+  access_control.application_user_roles (user_id, application_id, role_id)
+VALUES
+  (
+    '019a79f0-791f-7406-a222-997173f8e9d4',
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = ''
+    ),
+    (
+      SELECT
+        id
+      FROM
+        access_control.roles
+      WHERE
+        name = 'SUPERUSER'
     )
   );

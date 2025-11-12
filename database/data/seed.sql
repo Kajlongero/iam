@@ -4,6 +4,8 @@ TRUNCATE TABLE security.users RESTART IDENTITY CASCADE;
 
 TRUNCATE TABLE management.applications RESTART IDENTITY CASCADE;
 
+DROP TABLE IF EXISTS access_control.roles_iam_core_1 CASCADE;
+
 DROP TABLE IF EXISTS access_control.roles_iam_core_ui_2 CASCADE;
 
 DROP TABLE IF EXISTS access_control.permissions_iam_core_ui_2 CASCADE;
@@ -136,6 +138,11 @@ CREATE TABLE
   access_control.permissions_iam_core_ui_2 PARTITION OF access_control.permissions FOR
 VALUES
   IN (2);
+
+CREATE TABLE
+  access_control.roles_iam_core_1 PARTITION OF access_control.roles FOR
+VALUES
+  IN (1);
 
 CREATE TABLE
   access_control.roles_iam_core_ui_2 PARTITION OF access_control.roles FOR
@@ -308,5 +315,23 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERUSER'
+    )
+  );
+
+-- Roles for applications
+INSERT INTO
+  access_control.roles (name, description, is_default, application_id)
+VALUES
+  (
+    'SUPERSYSTEM',
+    'Super system role that has maximum permissions on the IAM Core.',
+    FALSE,
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = '' -- Client id of IAM Core (Not IAM CORE UI)
     )
   );

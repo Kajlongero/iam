@@ -118,3 +118,21 @@ VALUES
         client_id = 'b716d54b1fee4c2c5053e6499ce792b8d79de0aa88e117cb112ed2c12c82dbebbe7759ccc49471d20533b23e7ccac636'
     )
   );
+
+-- Roles for applications
+INSERT INTO
+  access_control.roles (name, description, is_default, application_id)
+VALUES
+  (
+    'SUPERSYSTEM',
+    'Super system role that has maximum permissions on the IAM Core.',
+    FALSE,
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = ''
+    )
+  );

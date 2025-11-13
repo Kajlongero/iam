@@ -35,6 +35,14 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERUSER'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     ),
     (
       SELECT
@@ -66,6 +74,14 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERADMIN'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     ),
     (
       SELECT
@@ -87,6 +103,14 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERADMIN'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     ),
     (
       SELECT
@@ -108,6 +132,14 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERADMIN'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     ),
     (
       SELECT
@@ -133,6 +165,6 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = '' -- Client id of IAM Core (Not IAM CORE UI)
     )
   );

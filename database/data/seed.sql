@@ -211,6 +211,14 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERUSER'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     ),
     (
       SELECT
@@ -242,6 +250,14 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERADMIN'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     ),
     (
       SELECT
@@ -263,6 +279,14 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERADMIN'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     ),
     (
       SELECT
@@ -284,6 +308,14 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERADMIN'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     ),
     (
       SELECT
@@ -292,6 +324,24 @@ VALUES
         management.applications
       WHERE
         client_id = ''
+    )
+  );
+
+-- Roles for applications
+INSERT INTO
+  access_control.roles (name, description, is_default, application_id)
+VALUES
+  (
+    'SUPERSYSTEM',
+    'Super system role that has maximum permissions on the IAM Core.',
+    FALSE,
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = '' -- Client id of IAM Core (Not IAM CORE UI)
     )
   );
 
@@ -315,23 +365,13 @@ VALUES
         access_control.roles
       WHERE
         name = 'SUPERUSER'
-    )
-  );
-
--- Roles for applications
-INSERT INTO
-  access_control.roles (name, description, is_default, application_id)
-VALUES
-  (
-    'SUPERSYSTEM',
-    'Super system role that has maximum permissions on the IAM Core.',
-    FALSE,
-    (
-      SELECT
-        id
-      FROM
-        management.applications
-      WHERE
-        client_id = '' -- Client id of IAM Core (Not IAM CORE UI)
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = ''
+        )
     )
   );

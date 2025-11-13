@@ -336,6 +336,21 @@ CREATE TABLE IF NOT EXISTS
 CREATE INDEX idx_access_control_role_permission_permission_id ON access_control.role_permissions (permission_id);
 
 CREATE TABLE IF NOT EXISTS
+  access_control.application_role_assignments (
+    id SERIAL,
+    role_id INTEGER NOT NULL,
+    application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ,
+    PRIMARY KEY (id, application_id),
+    UNIQUE (application_id, role_id),
+    FOREIGN KEY (role_id, application_id) REFERENCES access_control.roles (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
+  )
+PARTITION BY
+  LIST (application_id);
+
+CREATE TABLE IF NOT EXISTS
   access_control.rs_max_allowed_scopes (
     permission_id INTEGER NOT NULL,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,

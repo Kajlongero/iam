@@ -156,8 +156,8 @@ INSERT INTO
   access_control.roles (name, description, is_default, application_id)
 VALUES
   (
-    'SUPERSYSTEM',
-    'Super system role that has maximum permissions on the IAM Core.',
+    'CORE',
+    'Core Role for systems that can do everything within the IAM',
     FALSE,
     (
       SELECT
@@ -165,6 +165,19 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = '' -- Client id of IAM Core (Not IAM CORE UI)
+        client_id = 'IAM_CORE_PLACEHOLDER' -- Client id of IAM Core (Not IAM CORE UI)
+    )
+  ),
+  (
+    'SUPERSYSTEM',
+    'Super System Role that can do everything within the IAM but a fewer permissions',
+    FALSE,
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = 'IAM_CORE_PLACEHOLDER' -- Client id of IAM Core (Not IAM CORE UI)
     )
   );

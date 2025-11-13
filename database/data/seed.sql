@@ -22,6 +22,8 @@ DROP TABLE IF EXISTS access_control.rs_consumption_perms_iam_core_ui_2 CASCADE;
 
 DROP TABLE IF EXISTS access_control.application_user_roles_iam_core_ui_2 CASCADE;
 
+DROP TABLE IF EXISTS access_control.app_role_assignments_iam_core_ui_2 CASCADE;
+
 DROP TABLE IF EXISTS management.resource_servers_iam_core_ui_2 CASCADE;
 
 DROP TABLE IF EXISTS security.application_users_iam_core_ui_2 CASCADE;
@@ -60,7 +62,7 @@ VALUES
   (
     'http://localhost:3000',
     'IAM_CORE',
-    '', -- Fill the client id with the client id from .env
+    'IAM_CORE_PLACEHOLDER', -- Fill the client id with the client id from .env
     '$2b$10$bRLFlNuKaoOm2omKrjo2Aee9NLTb06TeIBq/8NNhIvShKxrPwa1rC',
     'http://localhost:3000',
     '019a79f0-791f-7406-a222-997173f8e9d4',
@@ -76,7 +78,7 @@ VALUES
   (
     'http://localhost:5173',
     'IAM_CORE_UI',
-    '', -- Fill the client id with the client id from .env
+    'IAM_CORE_UI_PLACEHOLDER', -- Fill the client id with the client id from .env
     '$2b$10$wfeTH7W2aWOwtJtBUVxvZetBSr7fRl9haxAAD.xbKIDLuniS0gAzm',
     'http://localhost:5173',
     '019a79f0-791f-7406-a222-997173f8e9d4',
@@ -106,7 +108,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = '' -- Fill the client id with the client id from .env
+        client_id = 'IAM_CORE_UI_PLACEHOLDER' -- Fill the client id with the client id from .env
     ),
     (
       SELECT
@@ -174,6 +176,11 @@ CREATE TABLE
 VALUES
   IN (2);
 
+CREATE TABLE
+  access_control.app_role_assignments_iam_core_ui_2 PARTITION OF access_control.application_role_assignments FOR
+VALUES
+  IN (2);
+
 INSERT INTO
   access_control.roles (name, description, is_default, application_id)
 VALUES
@@ -187,7 +194,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   );
 
@@ -217,7 +224,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     ),
     (
@@ -226,7 +233,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   );
 
@@ -256,7 +263,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     ),
     (
@@ -265,7 +272,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   ),
   (
@@ -285,7 +292,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     ),
     (
@@ -294,7 +301,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   ),
   (
@@ -314,7 +321,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     ),
     (
@@ -323,7 +330,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   );
 
@@ -332,8 +339,8 @@ INSERT INTO
   access_control.roles (name, description, is_default, application_id)
 VALUES
   (
-    'SUPERSYSTEM',
-    'Super system role that has maximum permissions on the IAM Core.',
+    'CORE',
+    'Core Role for systems that can do everything within the IAM',
     FALSE,
     (
       SELECT
@@ -341,7 +348,20 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = '' -- Client id of IAM Core (Not IAM CORE UI)
+        client_id = 'IAM_CORE_PLACEHOLDER' -- Client id of IAM Core (Not IAM CORE UI)
+    )
+  ),
+  (
+    'SUPERSYSTEM',
+    'Super System Role that can do everything within the IAM but a fewer permissions',
+    FALSE,
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = 'IAM_CORE_PLACEHOLDER' -- Client id of IAM Core (Not IAM CORE UI)
     )
   );
 
@@ -356,7 +376,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     ),
     (
       SELECT
@@ -371,7 +391,36 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
+    )
+  ),
+INSERT INTO
+  access_control.application_role_assignments (role_id, application_id)
+VALUES
+  (
+    (
+      SELECT
+        id
+      FROM
+        access_control.roles
+      WHERE
+        name = 'SUPERSYSTEM'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = 'IAM_CORE_PLACEHOLDER'
+        )
+    ),
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   );

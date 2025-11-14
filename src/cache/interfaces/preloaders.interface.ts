@@ -1,4 +1,8 @@
+import { KeyValue } from "src/redis/interfaces/key-val.interface";
+
 export interface CachePreloader<T> {
+  format: (data: T[]) => KeyValue[] | T[];
   preload: () => Promise<T[]>;
-  format: (data: T[]) => Promise<void>;
+
+  save?: (data: KeyValue[]) => Promise<void>;
 }

@@ -39,7 +39,7 @@ CREATE INDEX idx_applications_client_id ON management.applications (client_id);
 
 CREATE TABLE IF NOT EXISTS
   management.resource_servers (
-    id SERIAL,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(96) NOT NULL,
     client_id VARCHAR(96) NOT NULL,
     client_secret VARCHAR(255) NOT NULL,
@@ -47,12 +47,8 @@ CREATE TABLE IF NOT EXISTS
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ,
-    PRIMARY KEY (id, application_id),
-    UNIQUE (application_id, client_id),
     UNIQUE (application_id, name)
-  )
-PARTITION BY
-  LIST (application_id);
+  );
 
 CREATE TABLE IF NOT EXISTS
   management.providers (
@@ -66,32 +62,28 @@ CREATE TABLE IF NOT EXISTS
 
 CREATE TABLE IF NOT EXISTS
   access_control.objects (
-    id SERIAL,
+    id SERIAL PRIMARY KEY,
     description TEXT,
     name VARCHAR(64) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (id, application_id),
     UNIQUE (name, application_id)
-  )
-PARTITION BY
-  LIST (application_id);
+  );
 
 CREATE INDEX idx_objects_name ON access_control.objects (name);
 
+CREATE INDEX idx_objects_application_id ON access_control.objects (application_id);
+
 CREATE TABLE IF NOT EXISTS
   access_control.methods (
-    id SERIAL,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(64) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     description TEXT,
-    object_id INTEGER NOT NULL,
-    application_id INTEGER NOT NULL,
+    object_id INTEGER NOT NULL REFERENCES access_control.objects (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (object_id, application_id) REFERENCES access_control.objects (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    PRIMARY KEY (id, application_id),
-    UNIQUE (name, object_id, application_id)
+    UNIQUE (name, object_id)
   );
 
 CREATE INDEX idx_access_control_methods_name ON access_control.methods (name);
@@ -100,32 +92,27 @@ CREATE TABLE IF NOT EXISTS
   access_control.resource_server_objects (
     id SERIAL PRIMARY KEY,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    object_id INTEGER NOT NULL,
-    resource_server_id INTEGER NOT NULL,
+    object_id INTEGER NOT NULL REFERENCES access_control.objects (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    resource_server_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (object_id, application_id) REFERENCES access_control.objects (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (resource_server_id, application_id) REFERENCES management.resource_servers (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT uq_rs_server_object UNIQUE (resource_server_id, object_id, application_id)
+    UNIQUE (application_id, resource_server_id, object_id)
   );
 
 CREATE TABLE IF NOT EXISTS
   access_control.resource_server_object_methods (
     id SERIAL PRIMARY KEY,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    object_id INTEGER NOT NULL,
-    method_id INTEGER NOT NULL,
-    resource_server_id INTEGER NOT NULL,
+    object_id INTEGER NOT NULL REFERENCES access_control.objects (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    method_id INTEGER NOT NULL REFERENCES access_control.methods (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    resource_server_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (object_id, application_id) REFERENCES access_control.objects (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (method_id, application_id) REFERENCES access_control.methods (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (resource_server_id, application_id) REFERENCES management.resource_servers (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT uq_resource_server_object_methods_server_object_method UNIQUE (
+    UNIQUE (
+      application_id,
       resource_server_id,
       object_id,
-      method_id,
-      application_id
+      method_id
     )
   );
 
@@ -153,8 +140,6 @@ CREATE TABLE IF NOT EXISTS
   )
 PARTITION BY
   LIST (application_id);
-
-CREATE INDEX idx_application_users_user_id ON security.application_users (application_id, user_id);
 
 CREATE TABLE IF NOT EXISTS
   security.password_resets (
@@ -186,8 +171,6 @@ CREATE TABLE IF NOT EXISTS
     UNIQUE (provider_id, provider_unique_id)
   );
 
-CREATE INDEX idx_auth_email ON security.auth (email);
-
 CREATE INDEX idx_auth_user_id ON security.auth (user_id);
 
 CREATE TABLE IF NOT EXISTS
@@ -203,36 +186,26 @@ CREATE TABLE IF NOT EXISTS
     ip_address INET NOT NULL,
     user_agent TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (id, application_id)
+    PRIMARY KEY (application_id, id)
   )
 PARTITION BY
   LIST (application_id);
-
-CREATE INDEX idx_sessions_auth_id ON security.sessions (application_id, auth_id);
-
-CREATE INDEX idx_sessions_refresh_token ON security.sessions (application_id, refresh_token);
 
 CREATE INDEX idx_sessions_auth_id_refresh_token ON security.sessions (application_id, auth_id, refresh_token);
 
 CREATE TABLE IF NOT EXISTS
   access_control.permissions (
-    id SERIAL,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(128) NOT NULL,
     description TEXT,
     is_global BOOLEAN NOT NULL DEFAULT FALSE,
     is_editable BOOLEAN NOT NULL DEFAULT TRUE,
     application_id INTEGER REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (id, application_id),
     UNIQUE (application_id, name)
-  )
-PARTITION BY
-  LIST (application_id);
+  );
 
-CREATE TABLE
-  access_control.permissions_global PARTITION OF access_control.permissions FOR
-VALUES
-  IN (NULL);
+CREATE INDEX idx_permission_application_id ON access_control.permissions (application_id);
 
 CREATE TABLE IF NOT EXISTS
   access_control.permission_importance_levels (
@@ -245,49 +218,37 @@ CREATE TABLE IF NOT EXISTS
 
 CREATE TABLE IF NOT EXISTS
   access_control.permission_importance (
-    permission_id INTEGER NOT NULL,
-    application_id INTEGER NOT NULL,
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     importance_level_id SMALLINT NOT NULL REFERENCES access_control.permission_importance_levels (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (permission_id, application_id),
-    FOREIGN KEY (permission_id, application_id) REFERENCES access_control.permissions (id, application_id) ON UPDATE CASCADE ON DELETE CASCADE
+    PRIMARY KEY (permission_id, application_id)
   );
 
 CREATE INDEX idx_permission_importance_level_id ON access_control.permission_importance (importance_level_id);
 
 CREATE TABLE IF NOT EXISTS
   access_control.method_permissions (
-    method_id INTEGER NOT NULL,
-    permission_id INTEGER NOT NULL,
+    method_id INTEGER NOT NULL REFERENCES access_control.methods (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (method_id, permission_id, application_id),
-    FOREIGN KEY (method_id, application_id) REFERENCES access_control.methods (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (permission_id, application_id) REFERENCES access_control.permissions (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
+    PRIMARY KEY (method_id, permission_id, application_id)
   );
 
 CREATE TABLE IF NOT EXISTS
   access_control.roles (
-    id SERIAL,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(48) NOT NULL,
     description TEXT,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
-    parent_role_id INTEGER,
+    parent_role_id INTEGER REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE SET NULL,
     application_id INTEGER REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ,
-    PRIMARY KEY (id, application_id),
-    UNIQUE (application_id, name),
-    FOREIGN KEY (parent_role_id, application_id) REFERENCES access_control.roles (id, application_id) ON UPDATE CASCADE ON DELETE SET NULL
-  )
-PARTITION BY
-  LIST (application_id);
-
-CREATE TABLE
-  access_control.roles_global PARTITION OF access_control.roles FOR
-VALUES
-  IN (NULL);
+    UNIQUE (application_id, name)
+  );
 
 CREATE UNIQUE INDEX uix_application_default_role ON access_control.roles (application_id)
 WHERE
@@ -296,93 +257,75 @@ WHERE
 CREATE TABLE IF NOT EXISTS
   access_control.application_user_roles (
     user_id UUID NOT NULL REFERENCES security.users (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    role_id INTEGER NOT NULL,
     created_at timestamptz DEFAULT NOW(),
     PRIMARY KEY (user_id, application_id, role_id),
-    FOREIGN KEY (role_id, application_id) REFERENCES access_control.roles (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
   )
 PARTITION BY
   LIST (application_id);
 
 CREATE TABLE IF NOT EXISTS
   access_control.permission_assignment_rules (
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    permission_id INTEGER NOT NULL,
-    minimum_owner_role_id INTEGER NOT NULL,
+    minimum_owner_role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (permission_id, application_id),
-    FOREIGN KEY (permission_id, application_id) REFERENCES access_control.permissions (id, application_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (minimum_owner_role_id, application_id) REFERENCES access_control.roles (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
-  )
-PARTITION BY
-  LIST (application_id);
+    PRIMARY KEY (permission_id, application_id)
+  );
 
 CREATE INDEX idx_pa_minimum_owner_role_id ON access_control.permission_assignment_rules (minimum_owner_role_id);
 
 CREATE TABLE IF NOT EXISTS
   access_control.role_permissions (
-    role_id INTEGER NOT NULL,
-    permission_id INTEGER NOT NULL,
+    role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     expires_at TIMESTAMPTZ,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_assignable BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (role_id, permission_id, application_id),
-    FOREIGN KEY (role_id, application_id) REFERENCES access_control.roles (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (permission_id, application_id) REFERENCES access_control.permissions (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
+    PRIMARY KEY (role_id, permission_id, application_id)
   );
 
 CREATE INDEX idx_access_control_role_permission_permission_id ON access_control.role_permissions (permission_id);
 
 CREATE TABLE IF NOT EXISTS
   access_control.application_role_assignments (
-    id SERIAL,
-    role_id INTEGER NOT NULL,
+    id SERIAL NOT NULL PRIMARY KEY,
+    role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ,
-    PRIMARY KEY (id, application_id),
-    UNIQUE (application_id, role_id),
-    FOREIGN KEY (role_id, application_id) REFERENCES access_control.roles (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
-  )
-PARTITION BY
-  LIST (application_id);
+    UNIQUE (application_id, role_id)
+  );
 
 CREATE TABLE IF NOT EXISTS
   access_control.rs_max_allowed_scopes (
-    permission_id INTEGER NOT NULL,
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    resource_server_id INTEGER NOT NULL,
+    resource_server_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (resource_server_id, permission_id, application_id),
-    FOREIGN KEY (permission_id, application_id) REFERENCES access_control.permissions (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (resource_server_id, application_id) REFERENCES management.resource_servers (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
-  )
-PARTITION BY
-  LIST (application_id);
+    PRIMARY KEY (resource_server_id, permission_id, application_id)
+  );
 
 CREATE TABLE IF NOT EXISTS
   access_control.rs_exposed_permissions (
-    receptor_rs_id INTEGER NOT NULL,
-    permission_id INTEGER NOT NULL,
+    receptor_rs_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (receptor_rs_id, permission_id, application_id),
-    FOREIGN KEY (permission_id, application_id) REFERENCES access_control.permissions (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (receptor_rs_id, application_id) REFERENCES management.resource_servers (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
-  )
-PARTITION BY
-  LIST (application_id);
+    PRIMARY KEY (receptor_rs_id, permission_id, application_id)
+  );
 
 CREATE TABLE IF NOT EXISTS
   access_control.rs_consumption_permissions (
-    client_rs_id INTEGER NOT NULL,
-    receptor_rs_id INTEGER NOT NULL,
-    permission_id INTEGER NOT NULL,
+    client_rs_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    receptor_rs_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -391,10 +334,5 @@ CREATE TABLE IF NOT EXISTS
       receptor_rs_id,
       permission_id,
       application_id
-    ),
-    FOREIGN KEY (client_rs_id, application_id) REFERENCES management.resource_servers (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (receptor_rs_id, application_id) REFERENCES management.resource_servers (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (permission_id, application_id) REFERENCES access_control.permissions (id, application_id) ON UPDATE CASCADE ON DELETE RESTRICT
-  )
-PARTITION BY
-  LIST (application_id);
+    )
+  );

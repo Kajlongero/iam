@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS
     role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at timestamptz DEFAULT NOW(),
-    PRIMARY KEY (user_id, application_id, role_id),
+    PRIMARY KEY (user_id, application_id, role_id)
   )
 PARTITION BY
   LIST (application_id);
@@ -302,7 +302,7 @@ CREATE TABLE IF NOT EXISTS
   );
 
 CREATE TABLE IF NOT EXISTS
-  access_control.rs_max_allowed_scopes (
+  access_control.resource_server_max_allowed_scopes (
     permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     resource_server_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -312,26 +312,30 @@ CREATE TABLE IF NOT EXISTS
   );
 
 CREATE TABLE IF NOT EXISTS
-  access_control.rs_exposed_permissions (
-    receptor_rs_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (receptor_rs_id, permission_id, application_id)
-  );
-
-CREATE TABLE IF NOT EXISTS
-  access_control.rs_consumption_permissions (
-    client_rs_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    receptor_rs_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+  access_control.resource_server_exposed_permissions (
+    receptor_resource_server_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (
-      client_rs_id,
-      receptor_rs_id,
+      receptor_resource_server_id,
+      permission_id,
+      application_id
+    )
+  );
+
+CREATE TABLE IF NOT EXISTS
+  access_control.resource_server_consumption_permissions (
+    client_resource_server_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    receptor_resource_server_id INTEGER NOT NULL REFERENCES management.resource_servers (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (
+      client_resource_server_id,
+      receptor_resource_server_id,
       permission_id,
       application_id
     )

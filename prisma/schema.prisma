@@ -9,59 +9,64 @@ datasource db {
   schemas  = ["access_control", "management", "public", "security", "utils"]
 }
 
-model MethodPermissions {
+model MethodPermission {
   methodId      Int          @map("method_id")
   permissionId  Int          @map("permission_id")
   applicationId Int          @map("application_id")
   createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
-  methods       Methods      @relation(fields: [methodId, applicationId], references: [id, applicationId])
+  application   Application @relation(fields: [applicationId], references: [id])
+  method        Method      @relation(fields: [methodId], references: [id])
+  permission    Permission  @relation(fields: [permissionId], references: [id])
 
   @@id([methodId, permissionId, applicationId])
   @@map("method_permissions")
   @@schema("access_control")
 }
 
-model Methods {
-  id                          Int                           @default(autoincrement())
-  name                        String                        @db.VarChar(64)
-  isActive                    Boolean                       @default(true) @map("is_active")
-  description                 String?
-  objectId                    Int                           @map("object_id")
-  applicationId               Int                           @map("application_id")
-  createdAt                   DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
-  methodPermissions           MethodPermissions[]
-  resourceServerObjectMethods ResourceServerObjectMethods[]
+model Method {
+  id                                  Int                             @id @default(autoincrement())
+  name                                String                          @db.VarChar(64)
+  isActive                            Boolean                         @default(true) @map("is_active")
+  description                         String?
+  objectId                            Int                             @map("object_id")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  methodPermissions                   MethodPermission[]
+  object                              Object                          @relation(fields: [objectId], references: [id])
+  resourceServerObjectMethods         ResourceServerObjectMethod[]
 
-  @@id([id, applicationId])
-  @@unique([name, objectId, applicationId])
+  @@unique([name, objectId])
   @@index([name], map: "idx_access_control_methods_name")
   @@map("methods")
   @@schema("access_control")
 }
 
-model Objects {
-  id            Int          @default(autoincrement())
-  description   String?
-  name          String       @db.VarChar(64)
-  isActive      Boolean      @default(true) @map("is_active")
-  applicationId Int          @map("application_id")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
+model Object {
+  id                                  Int                             @id @default(autoincrement())
+  description                         String?
+  name                                String                          @db.VarChar(64)
+  isActive                            Boolean                         @default(true) @map("is_active")
+  applicationId                       Int                             @map("application_id")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  methods                             Method[]
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  resourceServerObjectMethods         ResourceServerObjectMethod[]
+  resourceServerObjects               ResourceServerObject[]
 
-  @@id([id, applicationId])
   @@unique([name, applicationId])
   @@index([name], map: "idx_objects_name")
+  @@index([applicationId], map: "idx_objects_application_id")
   @@map("objects")
   @@schema("access_control")
 }
 
-model PermissionAssignmentRules {
-  applicationId      Int          @map("application_id")
-  permissionId       Int          @map("permission_id")
-  minimumOwnerRoleId Int          @map("minimum_owner_role_id")
-  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications       Applications @relation(fields: [applicationId], references: [id])
+model PermissionAssignmentRule {
+  permissionId                        Int                             @map("permission_id")
+  applicationId                       Int                             @map("application_id")
+  minimumOwnerRoleId                  Int                             @map("minimum_owner_role_id")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  role                                Role                            @relation(fields: [minimumOwnerRoleId], references: [id])
+  permission                          Permission                      @relation(fields: [permissionId], references: [id])
 
   @@id([permissionId, applicationId])
   @@index([minimumOwnerRoleId], map: "idx_pa_minimum_owner_role_id")
@@ -69,30 +74,40 @@ model PermissionAssignmentRules {
   @@schema("access_control")
 }
 
-model Permissions {
-  id            Int          @default(autoincrement())
-  name          String       @db.VarChar(128)
-  description   String?
-  isGlobal      Boolean      @default(false) @map("is_global")
-  isEditable    Boolean      @default(true) @map("is_editable")
-  applicationId Int          @map("application_id")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
+model Permission {
+  id                                  Int                                       @id @default(autoincrement())
+  name                                String                                    @db.VarChar(128)
+  description                         String?
+  isGlobal                            Boolean                                   @default(false) @map("is_global")
+  isEditable                          Boolean                                   @default(true) @map("is_editable")
+  applicationId                       Int?                                      @map("application_id")
+  createdAt                           DateTime                                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  methodPermissions                   MethodPermission[]
+  permissionAssignmentRules           PermissionAssignmentRule[]
+  permissionImportance                PermissionImportance[]
+  application                         Application?                              @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  resourceServerConsumptionPermissions ResourceServerConsumptionPermission[]
+  resourceServerExposedPermissions    ResourceServerExposedPermission[]
+  resourceServerMaxAllowedScopes      ResourceServerMaxAllowedScope[]
+  rolePermissions                     RolePermission[]
 
-  @@id([id, applicationId])
   @@unique([applicationId, name])
+  @@index([applicationId], map: "idx_permission_application_id")
   @@map("permissions")
   @@schema("access_control")
 }
 
-model RolePermissions {
-  roleId        Int          @map("role_id")
-  permissionId  Int          @map("permission_id")
-  applicationId Int          @map("application_id")
-  expiresAt     DateTime?    @map("expires_at") @db.Timestamptz(6)
-  isActive      Boolean      @default(true) @map("is_active")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
+model RolePermission {
+  roleId                              Int                             @map("role_id")
+  permissionId                        Int                             @map("permission_id")
+  applicationId                       Int                             @map("application_id")
+  expiresAt                           DateTime?                       @map("expires_at") @db.Timestamptz(6)
+  isActive                            Boolean                         @default(true) @map("is_active")
+  isAssignable                        Boolean                         @default(true) @map("is_assignable")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  permission                          Permission                      @relation(fields: [permissionId], references: [id])
+  role                                Role                            @relation(fields: [roleId], references: [id])
 
   @@id([roleId, permissionId, applicationId])
   @@index([permissionId], map: "idx_access_control_role_permission_permission_id")
@@ -100,44 +115,49 @@ model RolePermissions {
   @@schema("access_control")
 }
 
-model Roles {
-  id            Int          @default(autoincrement())
-  name          String       @db.VarChar(48)
-  description   String?
-  isDefault     Boolean      @default(false) @map("is_default")
-  parentRoleId  Int?         @map("parent_role_id")
-  applicationId Int          @map("application_id")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime?    @map("updated_at") @db.Timestamptz(6)
-  deletedAt     DateTime?    @map("deleted_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
+model Role {
+  id                                  Int                             @id @default(autoincrement())
+  name                                String                          @db.VarChar(48)
+  description                         String?
+  isDefault                           Boolean                         @default(false) @map("is_default")
+  parentRoleId                        Int?                            @map("parent_role_id")
+  applicationId                       Int?                            @map("application_id")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                           DateTime?                       @map("updated_at") @db.Timestamptz(6)
+  deletedAt                           DateTime?                       @map("deleted_at") @db.Timestamptz(6)
+  applicationRoleAssignments          ApplicationRoleAssignment[]
+  applicationUserRoles                ApplicationUserRole[]
+  permissionAssignmentRules           PermissionAssignmentRule[]
+  rolePermissions                     RolePermission[]
+  application                         Application?                    @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  parentRole                          Role?                           @relation("RolesToRoles", fields: [parentRoleId], references: [id])
+  childRoles                          Role[]                          @relation("RolesToRoles")
 
-  @@id([id, applicationId])
   @@unique([applicationId, name])
   @@map("roles")
   @@schema("access_control")
 }
 
-model Providers {
-  id           Int      @id @default(autoincrement()) @db.SmallInt
-  name         String   @unique @db.VarChar(50)
-  description  String?
-  strategyType String   @map("strategy_type") @db.VarChar(24)
-  clientId     String?  @map("client_id") @db.VarChar(255)
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  auth         Auth[]
+model Provider {
+  id                                  Int                             @id @default(autoincrement()) @db.SmallInt
+  name                                String                          @unique @db.VarChar(50)
+  description                         String?
+  strategyType                        String                          @map("strategy_type") @db.VarChar(24)
+  clientId                            String?                         @map("client_id") @db.VarChar(255)
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  auth                                Auth[]
 
   @@map("providers")
   @@schema("management")
 }
 
 model Status {
-  id               Int                @id @default(autoincrement()) @db.SmallInt
-  name             String?            @unique @db.VarChar(24)
-  description      String?
-  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications     Applications[]
-  applicationUsers ApplicationUsers[]
+  id                                  Int                             @id @default(autoincrement()) @db.SmallInt
+  name                                String?                         @unique @db.VarChar(24)
+  description                         String?
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  applications                        Application[]
+  applicationUsers                    ApplicationUser[]
 
   @@index([name], map: "idx_status_name")
   @@map("status")
@@ -145,77 +165,74 @@ model Status {
 }
 
 model Auth {
-  id                   BigInt     @id @default(autoincrement())
-  email                String     @unique @db.VarChar(255)
-  password             String?    @db.VarChar(255)
-  lastLoginAt          DateTime?  @map("last_login_at") @db.Timestamptz(6)
-  lockedEndTime        DateTime?  @map("locked_end_time") @db.Timestamptz(6)
-  failedLoginAttempts  Int        @default(0) @map("failed_login_attempts")
-  lastPasswordChangeAt DateTime?  @map("last_password_change_at") @db.Timestamptz(6)
-  userId               String     @map("user_id") @db.Uuid
-  providerId           Int?       @map("provider_id") @db.SmallInt
-  providerUniqueId     String?    @map("provider_unique_id") @db.VarChar(128)
-  provider             Providers? @relation(fields: [providerId], references: [id], onDelete: Restrict)
-  user                 Users      @relation(fields: [userId], references: [id])
-  session              Sessions[]
+  id                                  BigInt                          @id @default(autoincrement())
+  email                               String                          @unique @db.VarChar(255)
+  password                            String?                         @db.VarChar(255)
+  lastLoginAt                         DateTime?                       @map("last_login_at") @db.Timestamptz(6)
+  lockedEndTime                       DateTime?                       @map("locked_end_time") @db.Timestamptz(6)
+  failedLoginAttempts                 Int                             @default(0) @map("failed_login_attempts")
+  lastPasswordChangeAt                DateTime?                       @map("last_password_change_at") @db.Timestamptz(6)
+  userId                              String                          @map("user_id") @db.Uuid
+  providerId                          Int?                            @map("provider_id") @db.SmallInt
+  providerUniqueId                    String?                         @map("provider_unique_id") @db.VarChar(128)
+  provider                            Provider?                       @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  user                                User                            @relation(fields: [userId], references: [id])
+  sessions                            Session[]
 
   @@unique([providerId, providerUniqueId])
-  @@index([email], map: "idx_auth_email")
   @@index([userId], map: "idx_auth_user_id")
   @@map("auth")
   @@schema("security")
 }
 
-model Sessions {
-  id            BigInt       @default(autoincrement())
-  authId        BigInt       @map("auth_id")
-  isActive      Boolean      @default(true) @map("is_active")
-  applicationId Int          @map("application_id")
-  expiresAt     DateTime     @map("expires_at") @db.Timestamptz(6)
-  validUntil    DateTime     @map("valid_until") @db.Timestamptz(6)
-  lastUsedAt    DateTime     @default(now()) @map("last_used_at") @db.Timestamptz(6)
-  refreshToken  String       @map("refresh_token") @db.VarChar(64)
-  ipAddress     String       @map("ip_address") @db.Inet
-  userAgent     String       @map("user_agent")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
-  auth          Auth         @relation(fields: [authId], references: [id])
+model Session {
+  id                                  BigInt                          @default(autoincrement())
+  authId                              BigInt                          @map("auth_id")
+  isActive                            Boolean                         @default(true) @map("is_active")
+  applicationId                       Int                             @map("application_id")
+  expiresAt                           DateTime                        @map("expires_at") @db.Timestamptz(6)
+  validUntil                          DateTime                        @map("valid_until") @db.Timestamptz(6)
+  lastUsedAt                          DateTime                        @default(now()) @map("last_used_at") @db.Timestamptz(6)
+  refreshToken                        String                          @map("refresh_token") @db.VarChar(64)
+  ipAddress                           String                          @map("ip_address") @db.Inet
+  userAgent                           String                          @map("user_agent")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  auth                                Auth                            @relation(fields: [authId], references: [id])
 
-  @@id([id, applicationId])
+  @@id([applicationId, id])
   @@index([applicationId, authId, refreshToken], map: "idx_sessions_auth_id_refresh_token")
-  @@index([applicationId, refreshToken], map: "idx_sessions_refresh_token")
-  @@index([applicationId, authId], map: "idx_sessions_auth_id")
   @@map("sessions")
   @@schema("security")
 }
 
-model Users {
-  id                   String                 @id @db.Uuid
-  isLocalPassword      Boolean                @default(false) @map("is_local_password")
-  isEmailConfirmed     Boolean                @default(false) @map("is_email_confirmed")
-  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime?              @map("updated_at") @db.Timestamptz(6)
-  deletedAt            DateTime?              @map("deleted_at") @db.Timestamptz(6)
-  applicationUserRoles ApplicationUserRoles[]
-  applications         Applications[]
-  applicationUsers     ApplicationUsers[]
-  auth                 Auth[]
-  passwordResets       PasswordResets[]
-  profiles             Profiles?
+model User {
+  id                                  String                          @id @db.Uuid
+  isLocalPassword                     Boolean                         @default(false) @map("is_local_password")
+  isEmailConfirmed                    Boolean                         @default(false) @map("is_email_confirmed")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                           DateTime?                       @map("updated_at") @db.Timestamptz(6)
+  deletedAt                           DateTime?                       @map("deleted_at") @db.Timestamptz(6)
+  applicationUserRoles                ApplicationUserRole[]
+  applications                        Application[]
+  applicationUsers                    ApplicationUser[]
+  auth                                Auth[]
+  passwordResets                      PasswordReset[]
+  profile                             Profile?
 
   @@map("users")
   @@schema("security")
 }
 
-model PasswordResets {
-  id        Int      @id @default(autoincrement())
-  userId    String   @map("user_id") @db.Uuid
-  isUsed    Boolean  @default(false) @map("is_used")
-  ipAddress String?  @map("ip_address") @db.Inet
-  tokenHash String   @unique @map("token_hash") @db.VarChar(45)
-  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  user      Users    @relation(fields: [userId], references: [id])
+model PasswordReset {
+  id                                  Int                             @id @default(autoincrement())
+  userId                              String                          @map("user_id") @db.Uuid
+  isUsed                              Boolean                         @default(false) @map("is_used")
+  ipAddress                           String?                         @map("ip_address") @db.Inet
+  tokenHash                           String                          @unique @map("token_hash") @db.VarChar(45)
+  expiresAt                           DateTime                        @map("expires_at") @db.Timestamptz(6)
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  user                                User                            @relation(fields: [userId], references: [id])
 
   @@index([tokenHash], map: "idx_password_resets_token_hash")
   @@index([userId], map: "idx_password_resets_user_id")
@@ -223,30 +240,33 @@ model PasswordResets {
   @@schema("security")
 }
 
-/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
-model ApplicationRoleAssignments {
-  id            Int          @default(autoincrement())
-  roleId        Int          @map("role_id")
-  applicationId Int          @map("application_id")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime?    @map("updated_at") @db.Timestamptz(6)
-  deletedAt     DateTime?    @map("deleted_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
+/// This table is a partition table and requires additional setup for migrations.
+/// Visit https://pris.ly/d/partition-tables for more info.
+model ApplicationRoleAssignment {
+  id                                  Int                             @id @default(autoincrement())
+  roleId                              Int                             @map("role_id")
+  applicationId                       Int                             @map("application_id")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                           DateTime?                       @map("updated_at") @db.Timestamptz(6)
+  deletedAt                           DateTime?                       @map("deleted_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  role                                Role                            @relation(fields: [roleId], references: [id])
 
-  @@id([id, applicationId])
   @@unique([applicationId, roleId])
   @@map("application_role_assignments")
   @@schema("access_control")
 }
 
-/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
-model ApplicationUserRoles {
-  userId        String       @map("user_id") @db.Uuid
-  applicationId Int          @map("application_id")
-  roleId        Int          @map("role_id")
-  createdAt     DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
-  users         Users        @relation(fields: [userId], references: [id])
+/// This table is a partition table and requires additional setup for migrations.
+/// Visit https://pris.ly/d/partition-tables for more info.
+model ApplicationUserRole {
+  userId                              String                          @map("user_id") @db.Uuid
+  roleId                              Int                             @map("role_id")
+  applicationId                       Int                             @map("application_id")
+  createdAt                           DateTime?                       @default(now()) @map("created_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  role                                Role                            @relation(fields: [roleId], references: [id])
+  user                                User                            @relation(fields: [userId], references: [id])
 
   @@id([userId, applicationId, roleId])
   @@map("application_user_roles")
@@ -254,11 +274,13 @@ model ApplicationUserRoles {
 }
 
 model PermissionImportance {
-  permissionId               Int                        @map("permission_id")
-  applicationId              Int                        @map("application_id")
-  importanceLevelId          Int                        @map("importance_level_id") @db.SmallInt
-  createdAt                  DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
-  permissionImportanceLevels PermissionImportanceLevels @relation(fields: [importanceLevelId], references: [id])
+  permissionId                        Int                             @map("permission_id")
+  applicationId                       Int                             @map("application_id")
+  importanceLevelId                   Int                             @map("importance_level_id") @db.SmallInt
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  permissionImportanceLevel           PermissionImportanceLevel       @relation(fields: [importanceLevelId], references: [id])
+  permission                          Permission                      @relation(fields: [permissionId], references: [id])
 
   @@id([permissionId, applicationId])
   @@index([importanceLevelId], map: "idx_permission_importance_level_id")
@@ -266,121 +288,83 @@ model PermissionImportance {
   @@schema("access_control")
 }
 
-model PermissionImportanceLevels {
-  id                   Int                    @id @default(autoincrement()) @db.SmallInt
-  name                 String                 @unique @db.VarChar(32)
-  loggingPolicy        String                 @map("logging_policy") @db.VarChar(16)
-  description          String?
-  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
-  permissionImportance PermissionImportance[]
+model PermissionImportanceLevel {
+  id                                  Int                             @id @default(autoincrement()) @db.SmallInt
+  name                                String                          @unique @db.VarChar(32)
+  loggingPolicy                       String                          @map("logging_policy") @db.VarChar(16)
+  description                         String?
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  permissionImportance                PermissionImportance[]
 
   @@map("permission_importance_levels")
   @@schema("access_control")
 }
 
-model ResourceServerObjectMethods {
-  id               Int          @id @default(autoincrement())
-  isActive         Boolean      @default(true) @map("is_active")
-  objectId         Int          @map("object_id")
-  methodId         Int          @map("method_id")
-  resourceServerId Int          @map("resource_server_id")
-  applicationId    Int          @map("application_id")
-  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications     Applications @relation(fields: [applicationId], references: [id])
-  methods          Methods      @relation(fields: [methodId, applicationId], references: [id, applicationId])
+model ResourceServerObjectMethod {
+  id                                  Int                             @id @default(autoincrement())
+  isActive                            Boolean                         @default(true) @map("is_active")
+  objectId                            Int                             @map("object_id")
+  methodId                            Int                             @map("method_id")
+  applicationId                       Int                             @map("application_id")
+  resourceServerId                    Int                             @map("resource_server_id")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  method                              Method                          @relation(fields: [methodId], references: [id])
+  object                              Object                          @relation(fields: [objectId], references: [id])
+  resourceServer                      ResourceServer                  @relation(fields: [resourceServerId], references: [id])
 
-  @@unique([resourceServerId, objectId, methodId, applicationId], map: "uq_resource_server_object_methods_server_object_method")
+  @@unique([applicationId, resourceServerId, objectId, methodId], map: "resource_server_object_method_application_id_resource_serve_key")
   @@map("resource_server_object_methods")
   @@schema("access_control")
 }
 
-model ResourceServerObjects {
-  id               Int          @id @default(autoincrement())
-  isActive         Boolean      @default(true) @map("is_active")
-  objectId         Int          @map("object_id")
-  resourceServerId Int          @map("resource_server_id")
-  applicationId    Int          @map("application_id")
-  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications     Applications @relation(fields: [applicationId], references: [id])
+model ResourceServerObject {
+  id                                  Int                             @id @default(autoincrement())
+  isActive                            Boolean                         @default(true) @map("is_active")
+  objectId                            Int                             @map("object_id")
+  applicationId                       Int                             @map("application_id")
+  resourceServerId                    Int                             @map("resource_server_id")
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  object                              Object                          @relation(fields: [objectId], references: [id])
+  resourceServer                      ResourceServer                  @relation(fields: [resourceServerId], references: [id])
 
-  @@unique([resourceServerId, objectId, applicationId], map: "uq_rs_server_object")
+  @@unique([applicationId, resourceServerId, objectId])
   @@map("resource_server_objects")
   @@schema("access_control")
 }
 
-/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
-model RsConsumptionPermissions {
-  clientRsId    Int          @map("client_rs_id")
-  receptorRsId  Int          @map("receptor_rs_id")
-  permissionId  Int          @map("permission_id")
-  applicationId Int          @map("application_id")
-  isActive      Boolean      @default(true) @map("is_active")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
-
-  @@id([clientRsId, receptorRsId, permissionId, applicationId])
-  @@map("rs_consumption_permissions")
-  @@schema("access_control")
-}
-
-/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
-model RsExposedPermissions {
-  receptorRsId  Int          @map("receptor_rs_id")
-  permissionId  Int          @map("permission_id")
-  applicationId Int          @map("application_id")
-  isActive      Boolean      @default(true) @map("is_active")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
-
-  @@id([receptorRsId, permissionId, applicationId])
-  @@map("rs_exposed_permissions")
-  @@schema("access_control")
-}
-
-/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
-model RsMaxAllowedScopes {
-  permissionId     Int          @map("permission_id")
-  applicationId    Int          @map("application_id")
-  resourceServerId Int          @map("resource_server_id")
-  isActive         Boolean      @default(true) @map("is_active")
-  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications     Applications @relation(fields: [applicationId], references: [id])
-
-  @@id([resourceServerId, permissionId, applicationId])
-  @@map("rs_max_allowed_scopes")
-  @@schema("access_control")
-}
-
-model Applications {
-  id                          Int                           @id @default(autoincrement())
-  url                         String
-  name                        String                        @db.VarChar(96)
-  clientId                    String                        @unique @map("client_id") @db.VarChar(96)
-  clientSecret                String                        @map("client_secret") @db.VarChar(255)
-  redirectUrl                 String                        @map("redirect_url") @db.VarChar(255)
-  statusId                    Int                           @map("status_id") @db.SmallInt
-  creatorUserId               String                        @map("creator_user_id") @db.Uuid
-  createdAt                   DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                   DateTime?                     @map("updated_at") @db.Timestamptz(6)
-  deletedAt                   DateTime?                     @map("deleted_at") @db.Timestamptz(6)
-  applicationRoleAssignments  ApplicationRoleAssignments[]
-  applicationUserRoles        ApplicationUserRoles[]
-  methodPermissions           MethodPermissions[]
-  objects                     Objects[]
-  permissionAssignmentRules   PermissionAssignmentRules[]
-  permissions                 Permissions[]
-  resourceServerObjectMethods ResourceServerObjectMethods[]
-  resourceServerObjects       ResourceServerObjects[]
-  rolePermissions             RolePermissions[]
-  roles                       Roles[]
-  rsConsumptionPermissions    RsConsumptionPermissions[]
-  rsExposedPermissions        RsExposedPermissions[]
-  rsMaxAllowedScopes          RsMaxAllowedScopes[]
-  users                       Users                         @relation(fields: [creatorUserId], references: [id])
-  status                      Status                        @relation(fields: [statusId], references: [id])
-  resourceServers             ResourceServers[]
-  applicationUsers            ApplicationUsers[]
-  sessions                    Sessions[]
+model Application {
+  id                                  Int                                       @id @default(autoincrement())
+  url                                 String
+  name                                String                                    @db.VarChar(96)
+  clientId                            String                                    @unique @map("client_id") @db.VarChar(96)
+  clientSecret                        String                                    @map("client_secret") @db.VarChar(255)
+  redirectUrl                         String                                    @map("redirect_url") @db.VarChar(255)
+  statusId                            Int                                       @map("status_id") @db.SmallInt
+  creatorUserId                       String                                    @map("creator_user_id") @db.Uuid
+  createdAt                           DateTime                                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                           DateTime?                                 @map("updated_at") @db.Timestamptz(6)
+  deletedAt                           DateTime?                                 @map("deleted_at") @db.Timestamptz(6)
+  applicationRoleAssignments          ApplicationRoleAssignment[]
+  applicationUserRoles                ApplicationUserRole[]
+  methodPermissions                   MethodPermission[]
+  objects                             Object[]
+  permissionAssignmentRules           PermissionAssignmentRule[]
+  permissionImportance                PermissionImportance[]
+  permissions                         Permission[]
+  resourceServerConsumptionPermissions ResourceServerConsumptionPermission[]
+  resourceServerExposedPermissions    ResourceServerExposedPermission[]
+  resourceServerMaxAllowedScopes      ResourceServerMaxAllowedScope[]
+  resourceServerObjectMethods         ResourceServerObjectMethod[]
+  resourceServerObjects               ResourceServerObject[]
+  rolePermissions                     RolePermission[]
+  roles                               Role[]
+  creatorUser                         User                                      @relation(fields: [creatorUserId], references: [id])
+  status                              Status                                    @relation(fields: [statusId], references: [id])
+  resourceServers                     ResourceServer[]
+  applicationUsers                    ApplicationUser[]
+  sessions                            Session[]
 
   @@index([clientId], map: "idx_applications_client_id")
   @@index([url], map: "idx_applications_url")
@@ -388,54 +372,106 @@ model Applications {
   @@schema("management")
 }
 
-/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
-model ResourceServers {
-  id            Int          @default(autoincrement())
-  name          String       @db.VarChar(96)
-  clientId      String       @map("client_id") @db.VarChar(96)
-  clientSecret  String       @map("client_secret") @db.VarChar(255)
-  isActive      Boolean      @default(true) @map("is_active")
-  applicationId Int          @map("application_id")
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime?    @map("updated_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
+/// This table is a partition table and requires additional setup for migrations.
+/// Visit https://pris.ly/d/partition-tables for more info.
+model ResourceServer {
+  id                                  Int                                       @id @default(autoincrement())
+  name                                String                                    @db.VarChar(96)
+  clientId                            String                                    @map("client_id") @db.VarChar(96)
+  clientSecret                        String                                    @map("client_secret") @db.VarChar(255)
+  isActive                            Boolean                                   @default(true) @map("is_active")
+  applicationId                       Int                                       @map("application_id")
+  createdAt                           DateTime                                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                           DateTime?                                 @map("updated_at") @db.Timestamptz(6)
+  receivedConsumptionPermissions      ResourceServerConsumptionPermission[]     @relation("ResourceServerReceivedConsumptionPermissions")
+  sentConsumptionPermissions          ResourceServerConsumptionPermission[]     @relation("ResourceServerSentConsumptionPermissions")
+  exposedPermissions                  ResourceServerExposedPermission[]
+  maxAllowedScopes                    ResourceServerMaxAllowedScope[]
+  resourceServerObjectMethods         ResourceServerObjectMethod[]
+  resourceServerObjects               ResourceServerObject[]
+  application                         Application                               @relation(fields: [applicationId], references: [id])
 
-  @@id([id, applicationId])
-  @@unique([applicationId, clientId])
   @@unique([applicationId, name])
   @@map("resource_servers")
   @@schema("management")
 }
 
-/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
-model ApplicationUsers {
-  userId        String       @map("user_id") @db.Uuid
-  applicationId Int          @map("application_id")
-  statusId      Int          @map("status_id") @db.SmallInt
-  username      String       @db.VarChar(64)
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications  Applications @relation(fields: [applicationId], references: [id])
-  status        Status       @relation(fields: [statusId], references: [id])
-  users         Users        @relation(fields: [userId], references: [id])
+/// This table is a partition table and requires additional setup for migrations.
+/// Visit https://pris.ly/d/partition-tables for more info.
+model ApplicationUser {
+  userId                              String                          @map("user_id") @db.Uuid
+  applicationId                       Int                             @map("application_id")
+  statusId                            Int                             @map("status_id") @db.SmallInt
+  username                            String                          @db.VarChar(64)
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  status                              Status                          @relation(fields: [statusId], references: [id])
+  user                                User                            @relation(fields: [userId], references: [id])
 
   @@id([userId, applicationId])
   @@unique([applicationId, username])
-  @@index([applicationId, userId], map: "idx_application_users_user_id")
   @@map("application_users")
   @@schema("security")
 }
 
-model Profiles {
-  userId      String    @id @map("user_id") @db.Uuid
-  firstName   String    @map("first_name") @db.VarChar(128)
-  lastName    String?   @map("last_name") @db.VarChar(128)
-  phoneNumber String?   @map("phone_number") @db.VarChar(32)
-  address     String?
-  dateOfBirth DateTime? @map("date_of_birth") @db.Date
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
-  users       Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Profile {
+  userId                              String                          @id @map("user_id") @db.Uuid
+  firstName                           String                          @map("first_name") @db.VarChar(128)
+  lastName                            String?                         @map("last_name") @db.VarChar(128)
+  phoneNumber                         String?                         @map("phone_number") @db.VarChar(32)
+  address                             String?
+  dateOfBirth                         DateTime?                       @map("date_of_birth") @db.Date
+  createdAt                           DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                           DateTime?                       @map("updated_at") @db.Timestamptz(6)
+  user                                User                            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("profiles")
   @@schema("security")
+}
+
+model ResourceServerConsumptionPermission {
+  clientResourceServerId              Int                             @map("client_resource_server_id")
+  receptorResourceServerId            Int                             @map("receptor_resource_server_id")
+  permissionId                        Int                             @map("permission_id")
+  applicationId                       Int                             @map("application_id")
+  isActive                            Boolean                         @default(true) @map("is_active")
+  createdAt                           DateTime                        @default(now()) @db.Timestamptz(6)
+  receptorResourceServer              ResourceServer                  @relation("ResourceServerReceivedConsumptionPermissions", fields: [receptorResourceServerId], references: [id], map: "resource_server_consumption_pe_receptor_resource_server_id_fkey")
+  clientResourceServer                ResourceServer                  @relation("ResourceServerSentConsumptionPermissions", fields: [clientResourceServerId], references: [id], map: "resource_server_consumption_perm_client_resource_server_id_fkey")
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  permission                          Permission                      @relation(fields: [permissionId], references: [id])
+
+  @@id([clientResourceServerId, receptorResourceServerId, permissionId, applicationId])
+  @@map("resource_server_consumption_permissions")
+  @@schema("access_control")
+}
+
+model ResourceServerExposedPermission {
+  receptorResourceServerId            Int                             @map("receptor_resource_server_id")
+  permissionId                        Int                             @map("permission_id")
+  applicationId                       Int                             @map("application_id")
+  isActive                            Boolean                         @default(true) @map("is_active")
+  createdAt                           DateTime                        @default(now()) @db.Timestamptz(6)
+  resourceServer                      ResourceServer                  @relation(fields: [receptorResourceServerId], references: [id], map: "resource_server_exposed_permis_receptor_resource_server_id_fkey")
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  permission                          Permission                      @relation(fields: [permissionId], references: [id])
+
+  @@id([receptorResourceServerId, permissionId, applicationId])
+  @@map("resource_server_exposed_permissions")
+  @@schema("access_control")
+}
+
+model ResourceServerMaxAllowedScope {
+  permissionId                        Int                             @map("permission_id")
+  applicationId                       Int                             @map("application_id")
+  resourceServerId                    Int                             @map("resource_server_id")
+  isActive                            Boolean                         @default(true) @map("is_active")
+  createdAt                           DateTime                        @default(now()) @db.Timestamptz(6)
+  application                         Application                     @relation(fields: [applicationId], references: [id])
+  permission                          Permission                      @relation(fields: [permissionId], references: [id])
+  resourceServer                      ResourceServer                  @relation(fields: [resourceServerId], references: [id])
+
+  @@id([resourceServerId, permissionId, applicationId])
+  @@map("resource_server_max_allowed_scopes")
+  @@schema("access_control")
 }

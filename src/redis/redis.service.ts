@@ -16,7 +16,7 @@ import { HashKeyValue } from "./interfaces/hash.interface";
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: Redis;
-  private logger: Logger = new Logger();
+  private logger: Logger = new Logger("RedisService");
 
   constructor(private configService: ConfigService) {}
 

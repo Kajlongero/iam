@@ -1,34 +1,15 @@
 -- SUPERUSER 
 -- Note: Always execute the following 2 commands
+------------------------------------------------
 TRUNCATE TABLE security.users RESTART IDENTITY CASCADE;
 
 TRUNCATE TABLE management.applications RESTART IDENTITY CASCADE;
 
-DROP TABLE IF EXISTS access_control.roles_iam_core_1 CASCADE;
-
-DROP TABLE IF EXISTS access_control.roles_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS access_control.permissions_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS access_control.objects_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS access_control.pa_rules_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS access_control.rs_max_scopes_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS access_control.rs_exposed_perms_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS access_control.rs_consumption_perms_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS access_control.application_user_roles_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS access_control.app_role_assignments_iam_core_ui_2 CASCADE;
-
-DROP TABLE IF EXISTS management.resource_servers_iam_core_ui_2 CASCADE;
+DROP TABLE IF EXISTS security.sessions_iam_core_ui_2 CASCADE;
 
 DROP TABLE IF EXISTS security.application_users_iam_core_ui_2 CASCADE;
 
-DROP TABLE IF EXISTS security.sessions_iam_core_ui_2 CASCADE;
+DROP TABLE IF EXISTS access_control.application_user_roles_iam_core_ui_2 CASCADE;
 
 INSERT INTO
   security.users (id, is_local_password, is_email_confirmed)
@@ -122,62 +103,12 @@ VALUES
   );
 
 CREATE TABLE
-  management.resource_servers_iam_core_ui_2 PARTITION OF management.resource_servers FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
-  access_control.objects_iam_core_ui_2 PARTITION OF access_control.objects FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
-  security.sessions_iam_core_ui_2 PARTITION OF security.sessions FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
-  access_control.permissions_iam_core_ui_2 PARTITION OF access_control.permissions FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
-  access_control.roles_iam_core_1 PARTITION OF access_control.roles FOR
-VALUES
-  IN (1);
-
-CREATE TABLE
-  access_control.roles_iam_core_ui_2 PARTITION OF access_control.roles FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
   access_control.application_user_roles_iam_core_ui_2 PARTITION OF access_control.application_user_roles FOR
 VALUES
   IN (2);
 
 CREATE TABLE
-  access_control.pa_rules_iam_core_ui_2 PARTITION OF access_control.permission_assignment_rules FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
-  access_control.rs_max_scopes_iam_core_ui_2 PARTITION OF access_control.rs_max_allowed_scopes FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
-  access_control.rs_exposed_perms_iam_core_ui_2 PARTITION OF access_control.rs_exposed_permissions FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
-  access_control.rs_consumption_perms_iam_core_ui_2 PARTITION OF access_control.rs_consumption_permissions FOR
-VALUES
-  IN (2);
-
-CREATE TABLE
-  access_control.app_role_assignments_iam_core_ui_2 PARTITION OF access_control.application_role_assignments FOR
+  security.sessions_iam_core_ui_2 PARTITION OF security.sessions FOR
 VALUES
   IN (2);
 
@@ -334,7 +265,6 @@ VALUES
     )
   );
 
--- Roles for applications
 INSERT INTO
   access_control.roles (name, description, is_default, application_id)
 VALUES
@@ -342,27 +272,13 @@ VALUES
     'CORE',
     'Core Role for systems that can do everything within the IAM',
     FALSE,
-    (
-      SELECT
-        id
-      FROM
-        management.applications
-      WHERE
-        client_id = 'IAM_CORE_PLACEHOLDER' -- Client id of IAM Core (Not IAM CORE UI)
-    )
+    NULL
   ),
   (
     'SUPERSYSTEM',
     'Super System Role that can do everything within the IAM but a fewer permissions',
     FALSE,
-    (
-      SELECT
-        id
-      FROM
-        management.applications
-      WHERE
-        client_id = 'IAM_CORE_PLACEHOLDER' -- Client id of IAM Core (Not IAM CORE UI)
-    )
+    NULL
   );
 
 INSERT INTO
@@ -394,7 +310,8 @@ VALUES
             client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     )
-  ),
+  );
+
 INSERT INTO
   access_control.application_role_assignments (role_id, application_id)
 VALUES
@@ -405,15 +322,27 @@ VALUES
       FROM
         access_control.roles
       WHERE
+        name = 'CORE'
+        AND application_id IS NULL
+    ),
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = 'IAM_CORE_PLACEHOLDER'
+    )
+  ),
+  (
+    (
+      SELECT
+        id
+      FROM
+        access_control.roles
+      WHERE
         name = 'SUPERSYSTEM'
-        AND application_id = (
-          SELECT
-            id
-          FROM
-            management.applications
-          WHERE
-            client_id = 'IAM_CORE_PLACEHOLDER'
-        )
+        AND application_id IS NULL
     ),
     (
       SELECT

@@ -71,13 +71,9 @@ export class PreloadRolesService implements CachePreloader<IApplicationRoles> {
       map as Map<string, Record<string, Role>>
     );
 
-    console.log(applicationRoles);
-
     const applicationHierarchy = this.buildRolesTree(
       map as Map<string, Record<string, Role>>
     );
-
-    console.log(applicationHierarchy);
 
     return {
       applicationRoles,

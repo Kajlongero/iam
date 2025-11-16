@@ -9,6 +9,7 @@ import { CacheService } from "./cache.service";
 import { RedisService } from "src/redis/redis.service";
 import { CacheKeysService } from "./providers/cache-keys.service";
 import { PreloadApplicationsService } from "./providers/preload-applications.service";
+import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 
 @Module({
   exports: [CacheService],
@@ -18,6 +19,7 @@ import { PreloadApplicationsService } from "./providers/preload-applications.ser
     CacheService,
     CacheKeysService,
     PreloadApplicationsService,
+    PreloadObjectMethodsService,
   ],
 })
 export class CacheModule {}

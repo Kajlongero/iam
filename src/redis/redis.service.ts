@@ -1,4 +1,4 @@
-import Redis from "ioredis";
+import Redis, { ChainableCommander } from "ioredis";
 
 import { ConfigService } from "@nestjs/config";
 import {
@@ -11,6 +11,7 @@ import {
 import { REDIS_CONSTANTS } from "src/commons/config/redis";
 
 import type { KeyValue } from "./interfaces/key-val.interface";
+import { HashKeyValue } from "./interfaces/hash.interface";
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -45,22 +46,40 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async pipeline(args: KeyValue[]) {
-    const pipeline = this.client.pipeline();
+  pipeline(): ChainableCommander {
+    return this.client.pipeline();
+  }
 
-    for (const arg of args) {
-      if (arg.ttl && arg.expireOptions) {
-        const { key, value, ttl, expireOptions } = arg;
+  setToPipeline(pipeline: ChainableCommander, keyValue: KeyValue) {
+    pipeline.set(keyValue.key, keyValue.value as string);
+  }
 
-        pipeline.set(key, value as string, expireOptions as "EX", ttl);
-      } else {
-        pipeline.set(arg.key, arg.value as string);
-      }
-    }
+  msetToPipeline(pipeline: ChainableCommander, keyValues: KeyValue[]) {
+    const flattenedArgs = keyValues.flatMap((kv) => [
+      kv.key,
+      kv.value as string,
+    ]);
 
-    const results = await pipeline.exec();
+    pipeline.mset(...flattenedArgs);
+  }
 
-    return results;
+  hsetToPipeline(pipeline: ChainableCommander, data: HashKeyValue) {
+    const flattenedArgs = data.values.flatMap((kv) => [
+      kv.key,
+      kv.value as string,
+    ]);
+
+    pipeline.hset(data.key, ...flattenedArgs);
+  }
+
+  mhsetToPipeline(pipeline: ChainableCommander, data: HashKeyValue[]) {
+    data.forEach((hashKeyValue) => {
+      this.hsetToPipeline(pipeline, hashKeyValue);
+    });
+  }
+
+  async execPipeline(pipeline: ChainableCommander) {
+    await pipeline.exec();
   }
 
   onModuleDestroy() {

@@ -18,8 +18,28 @@ export class CacheKeysService {
     return `iam:application:${clientId}:tenant:roles`;
   }
 
+  getApplicationsGlobalRolesKey() {
+    return `iam:application:global:roles`;
+  }
+
+  getApplicationGlobalRolesHierarchyKey() {
+    return `iam:application:global:role_hierarchy`;
+  }
+
+  getApplicationsRoleHierarchyKey(clientId: string) {
+    return `iam:application:${clientId}:tenant:role_hierarchy`;
+  }
+
+  getApplicationsLocalRoleByNameKey(clientId: string, roleName: string) {
+    return `iam:application:${clientId}:tenant:roles:${roleName}`;
+  }
+
   getApplicationsPlatformRolesKey(clientId: string) {
     return `iam:application:${clientId}:platform:roles`;
+  }
+
+  getApplicationsPlatformRoleByNameKey(clientId: string, roleName: string) {
+    return `iam:application:${clientId}:platform:roles:${roleName}`;
   }
 
   getApplicationsPermissionsKey(clientId: string) {
@@ -36,10 +56,6 @@ export class CacheKeysService {
     methodName: string
   ) {
     return `iam:application:${clientId}:object:${objectName}:method:${methodName}`;
-  }
-
-  getApplicationsRoleHierarchyKey(clientId: string) {
-    return `iam:application:${clientId}:role_hierarchy`;
   }
 
   getApplicationsResourceServersKey(clientId: string) {

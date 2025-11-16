@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 
+import { PreloadRolesService } from "./providers/preload-roles.service";
 import { PreloadApplicationsService } from "./providers/preload-applications.service";
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 
@@ -8,6 +9,7 @@ import type { Application } from "generated/prisma";
 @Injectable()
 export class CacheService implements OnModuleInit {
   constructor(
+    private readonly preloadRolesService: PreloadRolesService,
     private readonly preloadApplicationsService: PreloadApplicationsService,
     private readonly preloadObjectMethodsService: PreloadObjectMethodsService
   ) {}
@@ -27,6 +29,11 @@ export class CacheService implements OnModuleInit {
           this.preloadObjectMethodsService.save(
             this.preloadObjectMethodsService.format(data)
           )
+        ),
+      this.preloadRolesService
+        .preload()
+        .then((data) =>
+          this.preloadRolesService.save(this.preloadRolesService.format(data))
         ),
     ]);
   }

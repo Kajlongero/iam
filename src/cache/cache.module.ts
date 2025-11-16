@@ -4,6 +4,7 @@ import { ConfigModule } from "@nestjs/config";
 
 import { RedisModule } from "src/redis/redis.module";
 import { PrismaModule } from "src/prisma/prisma.module";
+import { DataStructuresModule } from "src/data-structures/data-structures.module";
 
 import { CacheService } from "./cache.service";
 import { RedisService } from "src/redis/redis.service";
@@ -14,14 +15,14 @@ import { PreloadObjectMethodsService } from "./providers/preload-object-methods.
 
 @Module({
   exports: [CacheService],
-  imports: [ConfigModule, PrismaModule, RedisModule],
+  imports: [ConfigModule, PrismaModule, RedisModule, DataStructuresModule],
   providers: [
     RedisService,
     CacheService,
     CacheKeysService,
+    PreloadRolesService,
     PreloadApplicationsService,
     PreloadObjectMethodsService,
-    PreloadRolesService,
   ],
 })
 export class CacheModule {}

@@ -1,28 +1,23 @@
 import { Module } from "@nestjs/common";
-import { CacheModule as NestCacheModule } from "@nestjs/cache-manager";
 
+import { ConfigModule } from "@nestjs/config";
+
+import { RedisModule } from "src/redis/redis.module";
 import { PrismaModule } from "src/prisma/prisma.module";
 
 import { CacheService } from "./cache.service";
-import { PreloadRolesService } from "./providers/preload-roles.service";
-import { PreloadSystemsService } from "./providers/preload-systems.service";
-import { PreloadPermissionsService } from "./providers/preload-permissions.service";
-import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
-import { DataStructuresModule } from "src/data-structures/data-structures.module";
+import { RedisService } from "src/redis/redis.service";
+import { CacheKeysService } from "./providers/cache-keys.service";
+import { PreloadApplicationsService } from "./providers/preload-applications.service";
 
 @Module({
-  imports: [
-    NestCacheModule.register({ nonBlocking: true }),
-    PrismaModule,
-    DataStructuresModule,
-  ],
+  exports: [CacheService],
+  imports: [ConfigModule, PrismaModule, RedisModule],
   providers: [
+    RedisService,
     CacheService,
-    PreloadRolesService,
-    PreloadSystemsService,
-    PreloadPermissionsService,
-    PreloadObjectMethodsService,
+    CacheKeysService,
+    PreloadApplicationsService,
   ],
-  exports: [NestCacheModule, CacheService],
 })
 export class CacheModule {}

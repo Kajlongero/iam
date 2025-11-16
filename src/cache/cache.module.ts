@@ -8,6 +8,7 @@ import { PrismaModule } from "src/prisma/prisma.module";
 import { CacheService } from "./cache.service";
 import { RedisService } from "src/redis/redis.service";
 import { CacheKeysService } from "./providers/cache-keys.service";
+import { PreloadRolesService } from "./providers/preload-roles.service";
 import { PreloadApplicationsService } from "./providers/preload-applications.service";
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 
@@ -20,6 +21,7 @@ import { PreloadObjectMethodsService } from "./providers/preload-object-methods.
     CacheKeysService,
     PreloadApplicationsService,
     PreloadObjectMethodsService,
+    PreloadRolesService,
   ],
 })
 export class CacheModule {}

@@ -10,6 +10,8 @@ import {
 
 import { REDIS_CONSTANTS } from "src/commons/config/redis";
 
+import type { KeyValue } from "./interfaces/key-val.interface";
+
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: Redis;
@@ -37,16 +39,28 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.client.on("error", (err) => {
       this.logger.error("Redis error: ", err);
     });
+
+    this.client.on("end", () => {
+      this.logger.log("Disconnected from Redis.");
+    });
   }
 
-  async setJson<T>(key: string, value: T) {
-    await this.client.set(key, JSON.stringify(value));
-  }
+  async pipeline(args: KeyValue[]) {
+    const pipeline = this.client.pipeline();
 
-  async getJson<T>(key: string): Promise<Record<string, T>> {
-    const result = (await this.client.get(key)) as string;
+    for (const arg of args) {
+      if (arg.ttl && arg.expireOptions) {
+        const { key, value, ttl, expireOptions } = arg;
 
-    return JSON.parse(result) as Record<string, T>;
+        pipeline.set(key, value as string, expireOptions as "EX", ttl);
+      } else {
+        pipeline.set(arg.key, arg.value as string);
+      }
+    }
+
+    const results = await pipeline.exec();
+
+    return results;
   }
 
   onModuleDestroy() {

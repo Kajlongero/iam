@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 @Injectable()
 export class CacheKeysService {
   getGlobalApplicationsKey() {
-    return `iam:global:applications`;
+    return `iam:application`;
   }
 
   getGlobalRolesPermissionsKey() {
@@ -26,8 +26,16 @@ export class CacheKeysService {
     return `iam:application:${clientId}:permissions`;
   }
 
-  getApplicationsObjectsAndMethodsKey(clientId: string) {
-    return `iam:application:${clientId}:objects_methods`;
+  getApplicationsObjectKey(clientId: string, objectName: string) {
+    return `iam:application:${clientId}:object:${objectName}`;
+  }
+
+  getApplicationsObjectMethodKey(
+    clientId: string,
+    objectName: string,
+    methodName: string
+  ) {
+    return `iam:application:${clientId}:object:${objectName}:method:${methodName}`;
   }
 
   getApplicationsRoleHierarchyKey(clientId: string) {

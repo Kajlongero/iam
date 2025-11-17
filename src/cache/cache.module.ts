@@ -14,7 +14,7 @@ import { PreloadApplicationsService } from "./providers/preload-applications.ser
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 
 @Module({
-  exports: [CacheService],
+  exports: [CacheService, CacheKeysService],
   imports: [ConfigModule, PrismaModule, RedisModule, DataStructuresModule],
   providers: [
     RedisService,

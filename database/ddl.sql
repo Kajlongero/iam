@@ -277,6 +277,24 @@ CREATE TABLE IF NOT EXISTS
 CREATE INDEX idx_pa_minimum_owner_role_id ON access_control.permission_assignment_rules (minimum_owner_role_id);
 
 CREATE TABLE IF NOT EXISTS
+  access_control.role_authority_restrictions (
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    target_role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    executing_role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    is_allowed BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at timestamptz DEFAULT NOW(),
+    PRIMARY KEY (
+      executing_role_id,
+      target_role_id,
+      permission_id,
+      application_id
+    )
+  )
+PARTITION BY
+  LIST (application_id);
+
+CREATE TABLE IF NOT EXISTS
   access_control.role_permissions (
     role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,

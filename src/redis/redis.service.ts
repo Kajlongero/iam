@@ -1,4 +1,4 @@
-import Redis, { ChainableCommander } from "ioredis";
+import Redis, { Callback, ChainableCommander } from "ioredis";
 
 import { ConfigService } from "@nestjs/config";
 import {
@@ -11,10 +11,13 @@ import {
 import { REDIS_CONSTANTS } from "src/commons/config/redis";
 
 import type { KeyValue } from "./interfaces/key-val.interface";
-import { HashKeyValue } from "./interfaces/hash.interface";
+import type { HashKeyValue } from "./interfaces/hash.interface";
+import type { CacheGetterSetters } from "src/cache/interfaces/cache-getters-setters.interface";
 
 @Injectable()
-export class RedisService implements OnModuleInit, OnModuleDestroy {
+export class RedisService
+  implements OnModuleInit, OnModuleDestroy, CacheGetterSetters
+{
   private client: Redis;
   private logger: Logger = new Logger("RedisService");
 
@@ -44,6 +47,26 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.client.on("end", () => {
       this.logger.log("Disconnected from Redis.");
     });
+  }
+
+  async get<T>(key: string, cb?: Callback<string | null>): Promise<T> {
+    return (await this.client.get(key, cb)) as T;
+  }
+
+  async mget<T>(key: string[]): Promise<T> {
+    return (await this.client.mget(key)) as T;
+  }
+
+  async hget<T>(key: string, field: string, cb?: Callback<string | null>) {
+    return (await this.client.hget(key, field, cb)) as T;
+  }
+
+  async hmget<T>(key: string, fields: string[]) {
+    return (await this.client.hmget(key, ...fields)) as T;
+  }
+
+  async hgetall<T>(key: string) {
+    return (await this.client.hgetall(key)) as T;
   }
 
   pipeline(): ChainableCommander {

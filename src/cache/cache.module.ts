@@ -12,6 +12,7 @@ import { CacheKeysService } from "./providers/cache-keys.service";
 import { PreloadRolesService } from "./providers/preload-roles.service";
 import { PreloadApplicationsService } from "./providers/preload-applications.service";
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
+import { PreloadUserPermissionsService } from "./providers/preload-user-permissions.service";
 
 @Module({
   exports: [CacheService, CacheKeysService],
@@ -23,6 +24,7 @@ import { PreloadObjectMethodsService } from "./providers/preload-object-methods.
     PreloadRolesService,
     PreloadApplicationsService,
     PreloadObjectMethodsService,
+    PreloadUserPermissionsService,
   ],
 })
 export class CacheModule {}

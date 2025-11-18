@@ -9,6 +9,7 @@ import { PreloadObjectMethodsService } from "./providers/preload-object-methods.
 
 import type { Application } from "generated/prisma";
 import type { CacheGetterSetters } from "./interfaces/cache-getters-setters.interface";
+import { PreloadUserPermissionsService } from "./providers/preload-user-permissions.service";
 
 @Injectable()
 export class CacheService implements OnModuleInit, CacheGetterSetters {
@@ -16,7 +17,8 @@ export class CacheService implements OnModuleInit, CacheGetterSetters {
     private readonly redisService: RedisService,
     private readonly preloadRolesService: PreloadRolesService,
     private readonly preloadApplicationsService: PreloadApplicationsService,
-    private readonly preloadObjectMethodsService: PreloadObjectMethodsService
+    private readonly preloadObjectMethodsService: PreloadObjectMethodsService,
+    private readonly preloadUserPermissionsService: PreloadUserPermissionsService
   ) {}
 
   async onModuleInit() {
@@ -39,6 +41,13 @@ export class CacheService implements OnModuleInit, CacheGetterSetters {
         .preload()
         .then((data) =>
           this.preloadRolesService.save(this.preloadRolesService.format(data))
+        ),
+      this.preloadUserPermissionsService
+        .preload()
+        .then((data) =>
+          this.preloadUserPermissionsService.save(
+            this.preloadUserPermissionsService.format(data)
+          )
         ),
     ]);
   }

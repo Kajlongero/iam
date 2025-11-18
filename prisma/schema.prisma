@@ -78,7 +78,7 @@ model Permission {
   id                                   Int                                   @id @default(autoincrement())
   name                                 String                                @db.VarChar(128)
   description                          String?
-  is_api_scope_                        Boolean                               @default(false) @map("is_api_scopeñ")
+  isApiScope                           Boolean                               @default(false) @map("is_api_scope")
   isEditable                           Boolean                               @default(true) @map("is_editable")
   applicationId                        Int?                                  @map("application_id")
   createdAt                            DateTime                              @default(now()) @map("created_at") @db.Timestamptz(6)

@@ -1,3 +1,5 @@
+import { ConfigService } from "@nestjs/config";
+
 import {
   Injectable,
   NotFoundException,
@@ -15,12 +17,14 @@ import {
   IAMMethodKey,
   IAMObjectKey,
 } from "../decorators/object-method.decorator";
+import { IAM_CONSTANTS_ENVS } from "../constants/iam.constants";
 
 const META_OBJECT_KEY = "__meta";
 @Injectable()
 export class ValidateObjectMethodAccessGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
+    private readonly cfgService: ConfigService,
     private readonly cacheService: CacheService,
     private readonly cacheKeysService: CacheKeysService
   ) {}
@@ -34,13 +38,17 @@ export class ValidateObjectMethodAccessGuard implements CanActivate {
     const methodName =
       this.reflector.get<string>(IAMMethodKey, targetMthd) || targetMthd.name;
 
+    const IAMCoreUIClientId = this.cfgService.getOrThrow<string>(
+      IAM_CONSTANTS_ENVS.IAM_CORE_UI_CLIENT_ID
+    );
+
     const OBJECT_KEY = this.cacheKeysService.getApplicationsObjectKey(
-      "IAM_CORE_UI_PLACEHOLDER",
+      IAMCoreUIClientId,
       objectName
     );
 
     const METHOD_KEY = this.cacheKeysService.getApplicationsObjectMethodKey(
-      "IAM_CORE_UI_PLACEHOLDER",
+      IAMCoreUIClientId,
       objectName,
       methodName
     );

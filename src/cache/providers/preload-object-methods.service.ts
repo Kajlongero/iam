@@ -56,11 +56,7 @@ export class PreloadObjectMethodsService
       };
 
       methods.forEach((method) => {
-        const keyName = this.cacheKeysService.getApplicationsObjectMethodKey(
-          application.clientId,
-          rest.name,
-          method.name
-        );
+        const keyName = method.name;
 
         obj[keyName] = JSON.stringify(method);
       });

@@ -6,8 +6,8 @@ import { CacheKeysService } from "./cache-keys.service";
 
 import type { CachePreloader } from "../interfaces/preloaders.interface";
 
+import type { HashKeyValue } from "src/redis/interfaces/hash.interface";
 import type { Application, Permission, Role } from "generated/prisma";
-import { HashKeyValue } from "src/redis/interfaces/hash.interface";
 
 export interface IPermissionRules extends Permission {
   application?: Pick<Application, "clientId"> | null;
@@ -91,10 +91,7 @@ export class PreloadUserPermissionsService
       if (!application?.clientId) {
         const record = map.get(globalKey) as Record<string, string>;
 
-        const key =
-          this.cacheKeysService.getGlobalUserPermissionsMetadataByNameKey(
-            permission.name
-          );
+        const key = permission.name;
 
         const res: IPermissionRules = {
           ...permission,
@@ -110,11 +107,7 @@ export class PreloadUserPermissionsService
 
         const record = map.get(element) as Record<string, string>;
 
-        const key =
-          this.cacheKeysService.getApplicationsUserPermissionsByNameKey(
-            application.clientId,
-            permission.name
-          );
+        const key = permission.name;
 
         const res: IPermissionRules = {
           ...permission,

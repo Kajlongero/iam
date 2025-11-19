@@ -31,7 +31,7 @@ export class PreloadApplicationsService implements CachePreloader<Application> {
 
     data.forEach((app) => {
       map.values.push({
-        key: this.cacheKeysService.getApplicationsKey(app.clientId),
+        key: app.clientId,
         value: JSON.stringify(app),
       });
     });

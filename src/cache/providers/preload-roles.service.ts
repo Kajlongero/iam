@@ -1,4 +1,7 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import { getChunkedData } from "src/prisma/utils/batch-preloader";
 
 import { RedisService } from "src/redis/redis.service";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -9,7 +12,7 @@ import type { KeyValue } from "src/redis/interfaces/key-val.interface";
 import type { TreeNode } from "src/data-structures/providers/general-tree.service";
 import type { HashKeyValue } from "src/redis/interfaces/hash.interface";
 import type { CachePreloader } from "../interfaces/preloaders.interface";
-import type { Role, Application } from "generated/prisma";
+import type { Role, Application, Prisma } from "generated/prisma";
 
 interface IApplicationRoles extends Role {
   application: Pick<Application, "clientId">;
@@ -23,6 +26,7 @@ interface ApplicationRolesAndHierarchies {
 @Injectable()
 export class PreloadRolesService implements CachePreloader<IApplicationRoles> {
   constructor(
+    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
     private readonly cacheKeysService: CacheKeysService,
@@ -30,17 +34,23 @@ export class PreloadRolesService implements CachePreloader<IApplicationRoles> {
   ) {}
 
   async preload(): Promise<IApplicationRoles[]> {
-    const data = await this.prisma.role.findMany({
-      include: {
-        application: {
-          select: {
-            clientId: true,
+    await getChunkedData({
+      limit: parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE")),
+      fnOpts: {
+        include: {
+          application: {
+            select: {
+              clientId: true,
+            },
           },
         },
       },
+      cursorField: "id",
+      fn: (args: Prisma.RoleFindManyArgs) => this.prisma.role.findMany(args),
+      fnSave: (data: IApplicationRoles[]) => this.save(this.format(data)),
     });
 
-    return data as IApplicationRoles[];
+    return [];
   }
 
   format<J>(data: IApplicationRoles[]): J {

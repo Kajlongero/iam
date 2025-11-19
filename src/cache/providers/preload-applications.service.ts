@@ -1,4 +1,7 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import { getChunkedData } from "src/prisma/utils/batch-preloader";
 
 import { RedisService } from "src/redis/redis.service";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -11,16 +14,22 @@ import type { CachePreloader } from "../interfaces/preloaders.interface";
 @Injectable()
 export class PreloadApplicationsService implements CachePreloader<Application> {
   constructor(
+    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
-
     private readonly cacheKeysService: CacheKeysService
   ) {}
 
   async preload<T>(): Promise<T[]> {
-    const applications = await this.prisma.application.findMany({});
+    await getChunkedData({
+      limit: parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE")),
+      fnOpts: {},
+      cursorField: "id",
+      fn: (args: object) => this.prisma.application.findMany(args),
+      fnSave: (data: Application[]) => this.save(this.format(data)),
+    });
 
-    return applications as T[];
+    return [];
   }
 
   format<J>(data: Application[]): J {

@@ -1,4 +1,7 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import { getChunkedData } from "src/prisma/utils/batch-preloader";
 
 import { RedisService } from "src/redis/redis.service";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -25,52 +28,59 @@ export class PreloadUserPermissionsService
   implements CachePreloader<IPermissionRules>
 {
   constructor(
+    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
     private readonly cacheKeysService: CacheKeysService
   ) {}
 
   async preload(): Promise<IPermissionRules[]> {
-    const data = await this.prisma.permission.findMany({
-      where: {
-        isApiScope: false,
+    await getChunkedData({
+      limit: parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE")),
+      fnOpts: {
+        where: {
+          isApiScope: false,
+        },
+        include: {
+          application: {
+            select: {
+              clientId: true,
+            },
+          },
+          permissionAssignmentRules: {
+            include: {
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          roleAuthorityRestrictions: {
+            include: {
+              targetRole: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              executingRole: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       },
-      include: {
-        application: {
-          select: {
-            clientId: true,
-          },
-        },
-        permissionAssignmentRules: {
-          include: {
-            role: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        roleAuthorityRestrictions: {
-          include: {
-            targetRole: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            executingRole: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      cursorField: "id",
+      fn: (args: object) => this.prisma.permission.findMany(args),
+      fnSave: (data: IPermissionRules[]) => this.save(this.format(data)),
     });
 
-    return data as IPermissionRules[];
+    return [];
   }
 
   format<J>(data: IPermissionRules[]): J {

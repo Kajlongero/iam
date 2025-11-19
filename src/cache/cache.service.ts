@@ -9,7 +9,6 @@ import { PreloadObjectMethodsService } from "./providers/preload-object-methods.
 import { PreloadApiPermissionsService } from "./providers/preload-resource-server-permissions.service";
 import { PreloadUserPermissionsService } from "./providers/preload-user-permissions.service";
 
-import type { Application } from "generated/prisma";
 import type { CacheGetterSetters } from "./interfaces/cache-getters-setters.interface";
 
 @Injectable()
@@ -25,39 +24,11 @@ export class CacheService implements OnModuleInit, CacheGetterSetters {
 
   async onModuleInit() {
     await Promise.all([
-      this.preloadApplicationsService
-        .preload()
-        .then((data) =>
-          this.preloadApplicationsService.save(
-            this.preloadApplicationsService.format(data as Application[])
-          )
-        ),
-      this.preloadObjectMethodsService
-        .preload()
-        .then((data) =>
-          this.preloadObjectMethodsService.save(
-            this.preloadObjectMethodsService.format(data)
-          )
-        ),
-      this.preloadRolesService
-        .preload()
-        .then((data) =>
-          this.preloadRolesService.save(this.preloadRolesService.format(data))
-        ),
-      this.preloadUserPermissionsService
-        .preload()
-        .then((data) =>
-          this.preloadUserPermissionsService.save(
-            this.preloadUserPermissionsService.format(data)
-          )
-        ),
-      this.preloadApiPermissionsService
-        .preload()
-        .then((data) =>
-          this.preloadApiPermissionsService.save(
-            this.preloadApiPermissionsService.format(data)
-          )
-        ),
+      this.preloadRolesService.preload(),
+      this.preloadApplicationsService.preload(),
+      this.preloadObjectMethodsService.preload(),
+      this.preloadApiPermissionsService.preload(),
+      this.preloadUserPermissionsService.preload(),
     ]);
   }
 

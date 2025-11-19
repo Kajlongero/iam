@@ -34,18 +34,24 @@ export class PreloadRolesService implements CachePreloader<IApplicationRoles> {
   ) {}
 
   async preload(): Promise<IApplicationRoles[]> {
-    await getChunkedData({
-      limit: parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE")),
-      fnOpts: {
-        include: {
-          application: {
-            select: {
-              clientId: true,
-            },
+    const limit = parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE"));
+    const cursorField = "id";
+
+    const fnOpts = {
+      include: {
+        application: {
+          select: {
+            clientId: true,
           },
         },
       },
-      cursorField: "id",
+    };
+
+    await getChunkedData({
+      limit,
+      fnOpts,
+      cursorField,
+
       fn: (args: Prisma.RoleFindManyArgs) => this.prisma.role.findMany(args),
       fnSave: (data: IApplicationRoles[]) => this.save(this.format(data)),
     });
@@ -53,42 +59,25 @@ export class PreloadRolesService implements CachePreloader<IApplicationRoles> {
     return [];
   }
 
-  format<J>(data: IApplicationRoles[]): J {
-    const globalKey = this.cacheKeysService.getApplicationsGlobalRolesKey();
-
-    const map = new Map();
-
-    if (!map.has(globalKey)) map.set(globalKey, {});
+  format<T>(data: IApplicationRoles[]): T {
+    const rolesByCacheKey = new Map<string, Record<string, Role>>();
+    const globalKeyName = this.cacheKeysService.getApplicationsGlobalRolesKey();
 
     data.forEach((item) => {
       const { application, ...role } = item;
 
-      if (!application?.clientId) {
-        const data = map.get(globalKey) as Record<string, Role>;
+      const key = application?.clientId || globalKeyName;
 
-        data[role.name] = role;
-      } else {
-        const localKey = application.clientId;
-        if (!map.has(localKey)) map.set(localKey, {});
+      if (!rolesByCacheKey.has(key)) rolesByCacheKey.set(key, {});
 
-        const localData = map.get(localKey) as Record<string, Role>;
-
-        localData[role.name] = role;
-      }
+      const record = rolesByCacheKey.get(key)!;
+      record[role.name] = role;
     });
 
-    const applicationRoles = this.buildHashedRoles(
-      map as Map<string, Record<string, Role>>
-    );
-
-    const applicationHierarchy = this.buildRolesTree(
-      map as Map<string, Record<string, Role>>
-    );
-
     return {
-      applicationRoles,
-      applicationHierarchy,
-    } as J;
+      applicationRoles: this.buildHashedRoles(rolesByCacheKey),
+      applicationHierarchy: this.buildRolesTree(rolesByCacheKey),
+    } as T;
   }
 
   async save<J>(values: J): Promise<void> {

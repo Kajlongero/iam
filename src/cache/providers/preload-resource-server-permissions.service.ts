@@ -10,7 +10,7 @@ import { CacheKeysService } from "./cache-keys.service";
 import type { CachePreloader } from "../interfaces/preloaders.interface";
 
 import type { HashKeyValue } from "src/redis/interfaces/hash.interface";
-import type { Application, Permission, Role } from "generated/prisma";
+import type { Application, Permission, Prisma, Role } from "generated/prisma";
 
 export interface IApiPermissionRules extends Permission {
   application?: Pick<Application, "clientId"> | null;
@@ -31,32 +31,39 @@ export class PreloadApiPermissionsService
   ) {}
 
   async preload(): Promise<IApiPermissionRules[]> {
-    await getChunkedData({
-      limit: parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE")),
-      fnOpts: {
-        where: {
-          isApiScope: true,
-        },
-        include: {
-          application: {
-            select: {
-              clientId: true,
-            },
+    const limit = parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE"));
+    const cursorField = "id";
+
+    const fnOpts = {
+      where: {
+        isApiScope: true,
+      },
+      include: {
+        application: {
+          select: {
+            clientId: true,
           },
-          permissionAssignmentRules: {
-            include: {
-              role: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+        },
+        permissionAssignmentRules: {
+          include: {
+            role: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },
         },
       },
-      cursorField: "id",
-      fn: (args: object) => this.prisma.permission.findMany(args),
+    };
+
+    await getChunkedData({
+      limit,
+      fnOpts,
+      cursorField,
+
+      fn: (args: Prisma.PermissionFindManyArgs) =>
+        this.prisma.permission.findMany(args),
       fnSave: (data: IApiPermissionRules[]) => this.save(this.format(data)),
     });
 
@@ -64,48 +71,32 @@ export class PreloadApiPermissionsService
   }
 
   format<J>(data: IApiPermissionRules[]): J {
-    const map = new Map();
-
-    const globalKey =
-      this.cacheKeysService.getGlobalApiPermissionsMetadataKey();
-
-    map.set(globalKey, {});
+    const map = new Map<string, Record<string, string>>();
 
     data.forEach((p) => {
       const { application, permissionAssignmentRules, ...permission } = p;
 
-      if (!application?.clientId) {
-        const record = map.get(globalKey) as Record<string, string>;
+      const cacheKey = application?.clientId
+        ? this.cacheKeysService.getApplicationsApiPermissionsKey(
+            application.clientId
+          )
+        : this.cacheKeysService.getGlobalApiPermissionsMetadataKey();
 
-        const key = permission.name;
+      if (!map.has(cacheKey)) map.set(cacheKey, {});
 
-        const res: IApiPermissionRules = {
-          ...permission,
-          permissionAssignmentRules,
-        };
+      const hash = map.get(cacheKey)!;
 
-        record[key] = JSON.stringify(res);
-      } else {
-        const element = this.cacheKeysService.getApplicationsApiPermissionsKey(
-          application.clientId
-        );
+      const res: IApiPermissionRules = {
+        ...permission,
+        permissionAssignmentRules,
+      };
 
-        const record = map.get(element) as Record<string, string>;
-
-        const key = permission.name;
-
-        const res: IApiPermissionRules = {
-          ...permission,
-          permissionAssignmentRules,
-        };
-
-        record[key] = JSON.stringify(res);
-      }
+      hash[permission.name] = JSON.stringify(res);
     });
 
     return Array.from(map.entries()).map(([key, value]) => {
-      const hashKey = key as string;
-      const object = value as Record<string, string>;
+      const hashKey = key;
+      const object = value;
 
       return {
         key: hashKey,

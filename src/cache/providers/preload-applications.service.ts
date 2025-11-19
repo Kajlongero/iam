@@ -7,9 +7,9 @@ import { RedisService } from "src/redis/redis.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CacheKeysService } from "./cache-keys.service";
 
-import type { Application } from "generated/prisma";
 import type { HashKeyValue } from "src/redis/interfaces/hash.interface";
 import type { CachePreloader } from "../interfaces/preloaders.interface";
+import type { Application, Prisma } from "generated/prisma";
 
 @Injectable()
 export class PreloadApplicationsService implements CachePreloader<Application> {
@@ -21,11 +21,18 @@ export class PreloadApplicationsService implements CachePreloader<Application> {
   ) {}
 
   async preload<T>(): Promise<T[]> {
+    const limit = parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE"));
+    const cursorField = "id";
+
+    const fnOpts = {};
+
     await getChunkedData({
-      limit: parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE")),
-      fnOpts: {},
-      cursorField: "id",
-      fn: (args: object) => this.prisma.application.findMany(args),
+      limit,
+      fnOpts,
+      cursorField,
+
+      fn: (args: Prisma.ApplicationFindManyArgs) =>
+        this.prisma.application.findMany(args),
       fnSave: (data: Application[]) => this.save(this.format(data)),
     });
 

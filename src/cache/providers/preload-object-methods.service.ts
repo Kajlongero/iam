@@ -9,10 +9,9 @@ import { CacheKeysService } from "./cache-keys.service";
 
 import type { CachePreloader } from "../interfaces/preloaders.interface";
 
-import type { Application } from "generated/prisma";
 import type { HashKeyValue } from "src/redis/interfaces/hash.interface";
-
 import type { IObjectMethod } from "../interfaces/objects.interface";
+import type { Application, Prisma } from "generated/prisma";
 
 interface IApplicationObjectMethod extends IObjectMethod {
   application: Pick<Application, "clientId">;
@@ -30,20 +29,27 @@ export class PreloadObjectMethodsService
   ) {}
 
   async preload(): Promise<IApplicationObjectMethod[]> {
-    await getChunkedData({
-      limit: parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE")),
-      fnOpts: {
-        include: {
-          application: {
-            select: {
-              clientId: true,
-            },
+    const limit = parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE"));
+    const cursorField = "id";
+
+    const fnOpts = {
+      include: {
+        application: {
+          select: {
+            clientId: true,
           },
-          methods: true,
         },
+        methods: true,
       },
-      cursorField: "id",
-      fn: (args: object) => this.prisma.object.findMany(args),
+    };
+
+    await getChunkedData({
+      limit,
+      fnOpts,
+      cursorField,
+
+      fn: (args: Prisma.ObjectFindManyArgs) =>
+        this.prisma.object.findMany(args),
       fnSave: (data: IApplicationObjectMethod[]) =>
         this.save(this.format(data)),
     });

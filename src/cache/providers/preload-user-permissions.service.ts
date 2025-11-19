@@ -35,47 +35,53 @@ export class PreloadUserPermissionsService
   ) {}
 
   async preload(): Promise<IPermissionRules[]> {
-    await getChunkedData({
-      limit: parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE")),
-      fnOpts: {
-        where: {
-          isApiScope: false,
+    const limit = parseInt(this.config.getOrThrow("BATCH_PREFETCH_SIZE"));
+    const cursorField = "id";
+
+    const fnOpts = {
+      where: {
+        isApiScope: false,
+      },
+      include: {
+        application: {
+          select: {
+            clientId: true,
+          },
         },
-        include: {
-          application: {
-            select: {
-              clientId: true,
-            },
-          },
-          permissionAssignmentRules: {
-            include: {
-              role: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+        permissionAssignmentRules: {
+          include: {
+            role: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },
-          roleAuthorityRestrictions: {
-            include: {
-              targetRole: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+        },
+        roleAuthorityRestrictions: {
+          include: {
+            targetRole: {
+              select: {
+                id: true,
+                name: true,
               },
-              executingRole: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+            },
+            executingRole: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },
         },
       },
-      cursorField: "id",
+    };
+
+    await getChunkedData({
+      limit,
+      fnOpts,
+      cursorField,
+
       fn: (args: object) => this.prisma.permission.findMany(args),
       fnSave: (data: IPermissionRules[]) => this.save(this.format(data)),
     });
@@ -83,12 +89,12 @@ export class PreloadUserPermissionsService
     return [];
   }
 
-  format<J>(data: IPermissionRules[]): J {
-    const map = new Map();
-    const globalKey =
+  format<T>(data: IPermissionRules[]): T {
+    const permissionsByCacheKey = new Map<string, Record<string, string>>();
+    const globalKeyName =
       this.cacheKeysService.getGlobalUserPermissionsMetadataKey();
 
-    map.set(globalKey, {});
+    permissionsByCacheKey.set(globalKeyName, {});
 
     data.forEach((p) => {
       const {
@@ -98,49 +104,38 @@ export class PreloadUserPermissionsService
         ...permission
       } = p;
 
-      if (!application?.clientId) {
-        const record = map.get(globalKey) as Record<string, string>;
+      const cacheKey = application?.clientId
+        ? this.cacheKeysService.getApplicationsUserPermissionsKey(
+            application.clientId
+          )
+        : globalKeyName;
 
-        const key = permission.name;
+      if (!permissionsByCacheKey.has(cacheKey))
+        permissionsByCacheKey.set(cacheKey, {});
 
-        const res: IPermissionRules = {
-          ...permission,
-          permissionAssignmentRules,
-          roleAuthorityRestrictions,
-        };
+      const record = permissionsByCacheKey.get(cacheKey)!;
+      const key = permission.name;
 
-        record[key] = JSON.stringify(res);
-      } else {
-        const element = this.cacheKeysService.getApplicationsUserPermissionsKey(
-          application.clientId
-        );
+      const res: IPermissionRules = {
+        ...permission,
+        permissionAssignmentRules,
+        roleAuthorityRestrictions,
+      };
 
-        const record = map.get(element) as Record<string, string>;
-
-        const key = permission.name;
-
-        const res: IPermissionRules = {
-          ...permission,
-          permissionAssignmentRules,
-          roleAuthorityRestrictions,
-        };
-
-        record[key] = JSON.stringify(res);
-      }
+      record[key] = JSON.stringify(res);
     });
 
-    return Array.from(map.entries()).map(([key, value]) => {
-      const hashKey = key as string;
-      const object = value as Record<string, string>;
+    return Array.from(permissionsByCacheKey.entries()).map(([key, value]) => {
+      const object = value;
 
       return {
-        key: hashKey,
+        key: key,
         values: Object.entries(object).map(([fieldKey, fieldValue]) => ({
           key: fieldKey,
           value: fieldValue,
         })),
       };
-    }) as J;
+    }) as T;
   }
 
   async save<J>(data: J): Promise<void> {

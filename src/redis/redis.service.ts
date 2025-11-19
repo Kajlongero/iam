@@ -49,6 +49,16 @@ export class RedisService
     });
   }
 
+  async exists(key: string | string[]) {
+    return Array.isArray(key)
+      ? await this.client.exists(...key)
+      : await this.client.exists(key);
+  }
+
+  async hexists(hash: string, key: string) {
+    return await this.client.hexists(hash, key);
+  }
+
   async get<T>(key: string, cb?: Callback<string | null>): Promise<T> {
     return (await this.client.get(key, cb)) as T;
   }

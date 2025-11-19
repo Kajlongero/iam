@@ -32,6 +32,18 @@ export class CacheService implements OnModuleInit, CacheGetterSetters {
     ]);
   }
 
+  async exists(key: string | string[]): Promise<number> {
+    const data = await this.redisService.exists(key);
+
+    return data;
+  }
+
+  async hexists(hash: string, key: string): Promise<number> {
+    const data = await this.redisService.hexists(hash, key);
+
+    return data;
+  }
+
   async get<T>(key: string, cb?: Callback<string | null>): Promise<T> {
     const data = await this.redisService.get<T>(key, cb);
 

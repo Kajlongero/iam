@@ -13,6 +13,7 @@ import { PreloadRolesService } from "./providers/preload-roles.service";
 import { PreloadApplicationsService } from "./providers/preload-applications.service";
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 import { PreloadUserPermissionsService } from "./providers/preload-user-permissions.service";
+import { PreloadApiPermissionsService } from "./providers/preload-resource-server-permissions.service";
 
 @Module({
   exports: [CacheService, CacheKeysService],
@@ -24,6 +25,7 @@ import { PreloadUserPermissionsService } from "./providers/preload-user-permissi
     PreloadRolesService,
     PreloadApplicationsService,
     PreloadObjectMethodsService,
+    PreloadApiPermissionsService,
     PreloadUserPermissionsService,
   ],
 })

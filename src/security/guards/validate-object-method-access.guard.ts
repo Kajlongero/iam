@@ -1,3 +1,5 @@
+import { Reflector } from "@nestjs/core";
+
 import { ConfigService } from "@nestjs/config";
 
 import {
@@ -8,18 +10,20 @@ import {
 
 import { CanActivate, ExecutionContext } from "@nestjs/common";
 
-import { CacheService } from "src/cache/cache.service";
-import { CacheKeysService } from "src/cache/providers/cache-keys.service";
-
-import type { Method, Object } from "generated/prisma";
-import { Reflector } from "@nestjs/core";
 import {
   IAMMethodKey,
   IAMObjectKey,
 } from "../decorators/object-method.decorator";
+
 import { IAM_CONSTANTS_ENVS } from "../constants/iam.constants";
 
+import { CacheService } from "src/cache/cache.service";
+import { CacheKeysService } from "src/cache/providers/cache-keys.service";
+
+import type { Method, Object } from "generated/prisma";
+
 const META_OBJECT_KEY = "__meta";
+
 @Injectable()
 export class ValidateObjectMethodAccessGuard implements CanActivate {
   constructor(

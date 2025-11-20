@@ -16,7 +16,7 @@ import { PreloadUserPermissionsService } from "./providers/preload-user-permissi
 import { PreloadApiPermissionsService } from "./providers/preload-resource-server-permissions.service";
 
 @Module({
-  exports: [CacheService, CacheKeysService],
+  exports: [CacheService, CacheKeysService, RedisService],
   imports: [ConfigModule, PrismaModule, RedisModule, DataStructuresModule],
   providers: [
     RedisService,

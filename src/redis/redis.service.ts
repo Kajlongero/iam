@@ -49,6 +49,10 @@ export class RedisService
     });
   }
 
+  async ttl(key: string) {
+    return await this.client.ttl(key);
+  }
+
   async exists(key: string | string[]) {
     return Array.isArray(key)
       ? await this.client.exists(...key)
@@ -79,8 +83,44 @@ export class RedisService
     return (await this.client.hgetall(key)) as T;
   }
 
+  async expire(key: string, seconds: number) {
+    return await this.client.expire(key, seconds);
+  }
+
   pipeline(): ChainableCommander {
     return this.client.pipeline();
+  }
+
+  ttlToPipeline(pipeline: ChainableCommander, key: string) {
+    pipeline.ttl(key);
+  }
+
+  existsToPipeline(pipeline: ChainableCommander, key: string | string[]) {
+    pipeline.exists(...key);
+  }
+
+  hexistsToPipeline(pipeline: ChainableCommander, hash: string, key: string) {
+    pipeline.hexists(hash, key);
+  }
+
+  getToPipeline(pipeline: ChainableCommander, key: string) {
+    pipeline.get(key);
+  }
+
+  mgetToPipeline(pipeline: ChainableCommander, keys: string[]) {
+    pipeline.mget(...keys);
+  }
+
+  hgetToPipeline(pipeline: ChainableCommander, key: string, field: string) {
+    pipeline.hget(key, field);
+  }
+
+  hmgetToPipeline(pipeline: ChainableCommander, key: string, fields: string[]) {
+    pipeline.hmget(key, ...fields);
+  }
+
+  hgetallToPipeline(pipeline: ChainableCommander, key: string) {
+    pipeline.hgetall(key);
   }
 
   setToPipeline(pipeline: ChainableCommander, keyValue: KeyValue) {
@@ -112,7 +152,13 @@ export class RedisService
   }
 
   async execPipeline(pipeline: ChainableCommander) {
-    await pipeline.exec();
+    return await pipeline.exec();
+  }
+
+  async del(key: string | string[]) {
+    return Array.isArray(key)
+      ? await this.client.del(...key)
+      : await this.client.del(key);
   }
 
   onModuleDestroy() {

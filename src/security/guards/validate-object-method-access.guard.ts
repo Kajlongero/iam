@@ -17,7 +17,7 @@ import {
 
 import { IAM_CONSTANTS_ENVS } from "../constants/iam.constants";
 
-import { CacheService } from "src/cache/cache.service";
+import { RedisService } from "src/redis/redis.service";
 import { CacheKeysService } from "src/cache/providers/cache-keys.service";
 
 import type { Method, Object } from "generated/prisma";
@@ -29,7 +29,7 @@ export class ValidateObjectMethodAccessGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly cfgService: ConfigService,
-    private readonly cacheService: CacheService,
+    private readonly redisService: RedisService,
     private readonly cacheKeysService: CacheKeysService
   ) {}
 
@@ -57,7 +57,7 @@ export class ValidateObjectMethodAccessGuard implements CanActivate {
       methodName
     );
 
-    const [object, method] = await this.cacheService.hmget<[string, string]>(
+    const [object, method] = await this.redisService.hmget<[string, string]>(
       OBJECT_KEY,
       [META_OBJECT_KEY, METHOD_KEY]
     );

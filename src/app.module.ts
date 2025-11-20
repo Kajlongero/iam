@@ -4,6 +4,7 @@ import { ConfigModule } from "@nestjs/config";
 
 import { AuthModule } from "./auth/auth.module";
 import { CacheModule } from "./cache/cache.module";
+import { CryptoModule } from "./crypto/crypto.module";
 import { SecurityModule } from "./security/security.module";
 
 import { ValidateObjectMethodAccessGuard } from "./security/guards/validate-object-method-access.guard";
@@ -14,6 +15,7 @@ import { IamConsistencyModule } from "./iam-consistency/iam-consistency.module";
     ConfigModule.forRoot({ cache: true }),
     AuthModule,
     CacheModule,
+    CryptoModule,
     SecurityModule,
     IamConsistencyModule,
   ],

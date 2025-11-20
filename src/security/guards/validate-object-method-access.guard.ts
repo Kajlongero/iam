@@ -46,21 +46,21 @@ export class ValidateObjectMethodAccessGuard implements CanActivate {
       IAM_CONSTANTS_ENVS.IAM_CORE_UI_CLIENT_ID
     );
 
+    console.log(IAMCoreUIClientId);
+
     const OBJECT_KEY = this.cacheKeysService.getApplicationsObjectKey(
       IAMCoreUIClientId,
       objectName
     );
 
-    const METHOD_KEY = this.cacheKeysService.getApplicationsObjectMethodKey(
-      IAMCoreUIClientId,
-      objectName,
-      methodName
-    );
+    const METHOD_KEY = methodName;
 
     const [object, method] = await this.redisService.hmget<[string, string]>(
       OBJECT_KEY,
       [META_OBJECT_KEY, METHOD_KEY]
     );
+
+    console.log(object, METHOD_KEY);
 
     if (!object || !method)
       throw new NotFoundException("Resource definition not found");

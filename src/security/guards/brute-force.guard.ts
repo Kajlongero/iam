@@ -54,12 +54,15 @@ export class BruteForceGuard implements CanActivate {
         : xForwardedFor || req.socket.remoteAddress
     ) as string;
 
-    const blockKey = this.cacheKeysService.getBlockedClientsByIp(ip);
-    const attemptsKey = this.cacheKeysService.getAttemptsOfClientByIp(ip);
+    const sanitizedIp = this.sanitizeIp(ip);
+
+    const blockKey = this.cacheKeysService.getBlockedClientsByIp(sanitizedIp);
+    const attemptsKey =
+      this.cacheKeysService.getAttemptsOfClientByIp(sanitizedIp);
 
     await this.isBlocked(blockKey);
 
-    await this.checkAttempts(attemptsKey, blockKey, ip);
+    await this.checkAttempts(attemptsKey, blockKey, sanitizedIp);
 
     return true;
   }
@@ -120,6 +123,10 @@ export class BruteForceGuard implements CanActivate {
     this.logger.warn(`🚨 IP ${ip} blocked due to brute force.`);
 
     this.throwTooManyRequestsError(this.BLOCK_TIME);
+  }
+
+  private sanitizeIp(ip: string): string {
+    return ip.replace(/:/g, "_");
   }
 
   private throwTooManyRequestsError(retryAfter: number): never {

@@ -186,4 +186,20 @@ export class CacheKeysService {
   ) {
     return `iam:application:${clientId}:resource_servers:${resourceServerClientId}`;
   }
+
+  /**
+   * Retrieve blocked ips key for rate limit
+   * @param ip IP Address
+   */
+  getBlockedClientsByIp(ip: string) {
+    return `iam:security:rate-limit:blocked:${ip}`;
+  }
+
+  /**
+   * Retrieve attempts of IPs to access to limited resources key
+   * @param ip IP Adress
+   */
+  getAttemptsOfClientByIp(ip: string) {
+    return `iam:security:rate-limit:attempts:${ip}`;
+  }
 }

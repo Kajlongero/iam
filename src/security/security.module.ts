@@ -6,21 +6,24 @@ import { JwtModule, JwtService } from "@nestjs/jwt";
 
 import { StringValue } from "ms";
 
-import { SecurityController } from "./security.controller";
-
-import { SecurityService } from "./security.service";
-import { LocalStrategyService } from "./strategies/local.strategy.service";
-import { S2sJwtStrategyService } from "./strategies/s2s-jwt.strategy.service";
-import { AccessJwtStrategyService } from "./strategies/access-jwt.strategy.service";
-import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.service";
-
 import { JWT_TOKEN_PROVIDERS } from "./constants/provider-tokens.constants";
+
 import {
   JWT_CONSTANTS,
   JWT_ALGORITHMS,
   JWT_SIGN_OPTIONS,
   JWT_EXPIRATION_TIMES,
 } from "./constants/jwt.constants";
+
+import { CacheModule } from "src/cache/cache.module";
+import { CryptoModule } from "src/crypto/crypto.module";
+
+import { SecurityService } from "./security.service";
+import { SecurityController } from "./security.controller";
+import { LocalStrategyService } from "./strategies/local.strategy.service";
+import { S2sJwtStrategyService } from "./strategies/s2s-jwt.strategy.service";
+import { AccessJwtStrategyService } from "./strategies/access-jwt.strategy.service";
+import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.service";
 
 @Module({
   imports: [
@@ -29,6 +32,8 @@ import {
     PassportModule.register({
       defaultStrategy: "s2s-jwt",
     }),
+    CacheModule,
+    CryptoModule,
   ],
   providers: [
     ConfigService,

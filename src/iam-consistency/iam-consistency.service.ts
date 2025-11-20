@@ -7,7 +7,7 @@ import { METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
 
 import { IAM_CONSTANTS_ENVS } from "src/security/constants/iam.constants";
 
-import { CacheService } from "src/cache/cache.service";
+import { RedisService } from "src/redis/redis.service";
 import { CacheKeysService } from "src/cache/providers/cache-keys.service";
 
 import {
@@ -21,7 +21,7 @@ export class IamConsistencyService implements OnModuleInit {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly cacheService: CacheService,
+    private readonly redisService: RedisService,
     private readonly configService: ConfigService,
     private readonly metadataScanner: MetadataScanner,
     private readonly cacheKeysService: CacheKeysService,
@@ -51,7 +51,7 @@ export class IamConsistencyService implements OnModuleInit {
         objectName
       );
 
-      const objectExists = await this.cacheService.exists(objectKey);
+      const objectExists = await this.redisService.exists(objectKey);
 
       if (objectExists === 0) {
         missingResources.set(objectName, []);
@@ -81,7 +81,7 @@ export class IamConsistencyService implements OnModuleInit {
         const finalMethodName =
           this.reflector.get<string>(IAMMethodKey, methodRef) || method;
 
-        const methodExists = await this.cacheService.hexists(
+        const methodExists = await this.redisService.hexists(
           objectKey,
           finalMethodName
         );

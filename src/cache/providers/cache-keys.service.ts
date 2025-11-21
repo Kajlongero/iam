@@ -167,12 +167,23 @@ export class CacheKeysService {
   }
 
   /**
+   * Retrieve global resource server their applicattionId by their clientId
+   */
+  getGlobalResourceServerLookupKey() {
+    return `iam:global:resource_server_names`;
+  }
+
+  /**
    * Retrieve all the application registered resource servers cached key
    * @param clientId
    * @returns
    */
   getApplicationsResourceServersKey(clientId: string) {
     return `iam:application:${clientId}:resource_servers`;
+  }
+
+  getApplicationsResourceServersNamesMappedKey(clientId: string) {
+    return `iam:application:${clientId}:resource_servers_names`;
   }
 
   /**

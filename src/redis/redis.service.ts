@@ -49,7 +49,7 @@ export class RedisService
     });
   }
 
-  async eval(script: string, count: number, data: string[]) {
+  async eval(script: string, count: number, data: (string | number)[]) {
     return await this.client.eval(script, count, ...data);
   }
 

@@ -10,7 +10,7 @@ import {
   ExecutionContext,
 } from "@nestjs/common";
 
-import { HTTP_RESPONSES } from "src/commons/responses/http.responses";
+import { ERROR_CODES } from "src/commons/responses/http.responses";
 import { RATE_LIMIT_CONSTANTS } from "../constants/rate-limit.constants";
 import { GET_IP_BRUTE_FORCE_STATUS } from "src/cache/constants/lua-scripts.constants";
 
@@ -71,7 +71,7 @@ export class BruteForceGuard implements CanActivate {
   private throwTooManyRequestsError(retryAfter: number): never {
     throw new HttpException(
       {
-        ...HTTP_RESPONSES[429].BRUTE_FORCE_TOO_MANY_REQUESTS,
+        errorCode: ERROR_CODES.SECURITY_IP_BLOCKED,
         retryAfterSeconds: retryAfter,
       },
       HttpStatus.TOO_MANY_REQUESTS

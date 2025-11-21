@@ -3,6 +3,11 @@ import { ConfigService } from "@nestjs/config";
 
 import { getChunkedData } from "src/prisma/utils/batch-preloader";
 
+import {
+  MapToHashKeyValue,
+  MapToHashKeyValueArray,
+} from "../helpers/map-to-hash-key-value";
+
 import { RedisService } from "src/redis/redis.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CacheKeysService } from "./cache-keys.service";
@@ -50,10 +55,10 @@ export class PreloadResourceServers
   }
 
   format<J>(data: IApplicationResourceServer[]): J {
-    const resourceServersMap = new Map();
-    const resourceServersNameMap = new Map();
+    const resourceServersMap = new Map<string, Record<string, string>>();
+    const resourceServersNameMap = new Map<string, Record<string, string>>();
 
-    const globalLookupMap = new Map();
+    const globalLookupMap: Record<string, string> = {};
 
     const globalLookupKey =
       this.cacheKeysService.getGlobalResourceServerLookupKey();
@@ -90,43 +95,9 @@ export class PreloadResourceServers
     });
 
     return [
-      Array.from(resourceServersMap.entries()).map(([key, value]) => {
-        const keyName = key as string;
-
-        return {
-          key: keyName,
-          values: Object.entries(value as Record<string, unknown>).map(
-            ([fieldKey, fieldValue]) => ({
-              key: fieldKey,
-              value: fieldValue,
-            })
-          ),
-        };
-      }),
-      Array.from(resourceServersNameMap.entries()).map(([key, value]) => {
-        const keyName = key as string;
-
-        return {
-          key: keyName,
-          values: Object.entries(value as Record<string, unknown>).map(
-            ([fieldKey, fieldValue]) => ({
-              key: fieldKey,
-              value: fieldValue,
-            })
-          ),
-        };
-      }),
-      [
-        {
-          key: globalLookupKey,
-          values: Object.entries(globalLookupMap).map(
-            ([fieldKey, fieldValue]) => ({
-              key: fieldKey,
-              value: fieldValue as string,
-            })
-          ),
-        },
-      ],
+      MapToHashKeyValueArray(resourceServersMap),
+      MapToHashKeyValueArray(resourceServersNameMap),
+      MapToHashKeyValue(globalLookupKey, globalLookupMap),
     ] as J;
   }
 

@@ -14,7 +14,7 @@ end
 local attempts = redis.call('INCR', KEYS[2])
 
 if attempts == 1 then
-  redis.call('EXPIRE', KEYS[2], ARGV[2])
+  redis.call('EXPIRE', KEYS[2], tonumber(ARGV[2]))
 end
 
 if attempts > tonumber(ARGV[1]) then

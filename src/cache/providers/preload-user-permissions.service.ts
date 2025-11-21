@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import { getChunkedData } from "src/prisma/utils/batch-preloader";
+import { MapToHashKeyValueArray } from "../helpers/map-to-hash-key-value";
 
 import { RedisService } from "src/redis/redis.service";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -125,17 +126,7 @@ export class PreloadUserPermissionsService
       record[key] = JSON.stringify(res);
     });
 
-    return Array.from(permissionsByCacheKey.entries()).map(([key, value]) => {
-      const object = value;
-
-      return {
-        key: key,
-        values: Object.entries(object).map(([fieldKey, fieldValue]) => ({
-          key: fieldKey,
-          value: fieldValue,
-        })),
-      };
-    }) as T;
+    return MapToHashKeyValueArray(permissionsByCacheKey) as T;
   }
 
   async save<J>(data: J): Promise<void> {

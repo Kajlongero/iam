@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import { getChunkedData } from "src/prisma/utils/batch-preloader";
+import { MapToHashKeyValue } from "../helpers/map-to-hash-key-value";
 
 import { RedisService } from "src/redis/redis.service";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -40,19 +41,12 @@ export class PreloadApplicationsService implements CachePreloader<Application> {
   }
 
   format<J>(data: Application[]): J {
-    const map: HashKeyValue = {
-      key: this.cacheKeysService.getGlobalApplicationsKey(),
-      values: [],
-    };
+    const key = this.cacheKeysService.getGlobalApplicationsKey();
+    const map: Record<string, string> = {};
 
-    data.forEach((app) => {
-      map.values.push({
-        key: app.clientId,
-        value: JSON.stringify(app),
-      });
-    });
+    data.forEach((app) => (map[app.clientId] = JSON.stringify(app)));
 
-    return map as J;
+    return MapToHashKeyValue(key, map) as J;
   }
 
   async save<T>(args: T): Promise<void> {

@@ -2,15 +2,15 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import { getChunkedData } from "src/prisma/utils/batch-preloader";
+import { MapToHashKeyValueArray } from "../helpers/map-to-hash-key-value";
 
 import { RedisService } from "src/redis/redis.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CacheKeysService } from "./cache-keys.service";
 
-import type { CachePreloader } from "../interfaces/preloaders.interface";
-
 import type { HashKeyValue } from "src/redis/interfaces/hash.interface";
 import type { IObjectMethod } from "../interfaces/objects.interface";
+import type { CachePreloader } from "../interfaces/preloaders.interface";
 import type { Application, Prisma } from "generated/prisma";
 
 interface IApplicationObjectMethod extends IObjectMethod {
@@ -58,7 +58,7 @@ export class PreloadObjectMethodsService
   }
 
   format<J>(data: IApplicationObjectMethod[]): J {
-    const map = new Map();
+    const map = new Map<string, Record<string, string>>();
 
     data.forEach((item) => {
       const { application, methods, ...rest } = item;
@@ -81,18 +81,7 @@ export class PreloadObjectMethodsService
       if (!map.has(key)) map.set(key, obj);
     });
 
-    return Array.from(map.entries()).map(([key, value]) => {
-      const values = Object.entries(value as Record<string, unknown>);
-      const keyName = key as string;
-
-      return {
-        key: keyName,
-        values: values.map(([fieldKey, fieldValue]) => ({
-          key: fieldKey,
-          value: fieldValue,
-        })),
-      };
-    }) as J;
+    return MapToHashKeyValueArray(map) as J;
   }
 
   async save<T>(args: T): Promise<void> {

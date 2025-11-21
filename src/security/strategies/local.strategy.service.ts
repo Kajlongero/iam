@@ -6,7 +6,6 @@ import { PassportStrategy } from "@nestjs/passport";
 @Injectable()
 export class LocalStrategyService extends PassportStrategy(Strategy) {
   constructor() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       usernameField: "email",
       passwordField: "password",

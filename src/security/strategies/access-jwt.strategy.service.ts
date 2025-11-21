@@ -12,11 +12,12 @@ export class AccessJwtStrategyService extends PassportStrategy(
 ) {
   constructor(private readonly configService: ConfigService) {
     super({
-      secretOrKey: JWT_CONSTANTS.RSA_PRIVATE_KEY_SECRET,
+      secretOrKey: JWT_CONSTANTS.RSA_PUBLIC_KEY_SECRET,
       jwtFromRequest: ExtractJwt.fromHeader(
         JWT_EXTRACT_FIELDS.ACCESS_TOKEN.HEADER
       ),
       ignoreExpiration: false,
+      passReqToCallback: true,
     });
   }
 

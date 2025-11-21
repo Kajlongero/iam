@@ -19,6 +19,7 @@ export class RefreshJwtStrategyService extends PassportStrategy(
         JWT_EXTRACT_FIELDS.REFRESH_TOKEN.BODY
       ),
       ignoreExpiration: false,
+      passReqToCallback: true,
     });
   }
 

@@ -15,6 +15,7 @@ import {
   IAMObjectKey,
 } from "../decorators/object-method.decorator";
 
+import { HTTP_RESPONSES } from "src/commons/responses/http.responses";
 import { IAM_CONSTANTS_ENVS } from "../constants/iam.constants";
 
 import { RedisService } from "src/redis/redis.service";
@@ -51,11 +52,9 @@ export class ValidateObjectMethodAccessGuard implements CanActivate {
       objectName
     );
 
-    const METHOD_KEY = methodName;
-
     const [object, method] = await this.redisService.hmget<[string, string]>(
       OBJECT_KEY,
-      [META_OBJECT_KEY, METHOD_KEY]
+      [META_OBJECT_KEY, methodName]
     );
 
     if (!object || !method)
@@ -66,17 +65,13 @@ export class ValidateObjectMethodAccessGuard implements CanActivate {
 
     if (!objectParsed.isActive)
       throw new ForbiddenException({
-        statusCode: 403,
-        message: "This resource is currently disabled by administrator",
-        errorCode: "RESOURCE_DISABLED",
+        ...HTTP_RESPONSES[403].RESOURCE_DISABLED_FORBIDDEN,
         resource: objectParsed.name,
       });
 
     if (!methodParsed.isActive)
       throw new ForbiddenException({
-        statusCode: 403,
-        message: "This resource is currently disabled by administrator",
-        errorCode: "RESOURCE_DISABLED",
+        ...HTTP_RESPONSES[403].RESOURCE_DISABLED_FORBIDDEN,
         resource: methodParsed.name,
       });
 

@@ -23,7 +23,7 @@ export const JWT_SIGN_OPTIONS = {
 
 export const JWT_EXTRACT_FIELDS = {
   ACCESS_TOKEN: {
-    HEADER: "X-User-Credential",
+    HEADER: "x-user-token",
   },
   REFRESH_TOKEN: {
     BODY: "refresh_token",

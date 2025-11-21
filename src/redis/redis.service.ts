@@ -49,6 +49,10 @@ export class RedisService
     });
   }
 
+  async eval(script: string, count: number, data: string[]) {
+    return await this.client.eval(script, count, ...data);
+  }
+
   async ttl(key: string) {
     return await this.client.ttl(key);
   }

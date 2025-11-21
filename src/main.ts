@@ -5,6 +5,7 @@ import { setupSwagger } from "./swagger/setup";
 
 import { AppModule } from "./app.module";
 import { PrismaExceptionFilter } from "./prisma/filters/prisma.filters";
+import { I18nExceptionFilter } from "./commons/filters/i18n-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,7 +17,7 @@ async function bootstrap() {
     })
   );
 
-  app.useGlobalFilters(new PrismaExceptionFilter());
+  app.useGlobalFilters(new PrismaExceptionFilter(), new I18nExceptionFilter());
 
   setupSwagger(app);
 

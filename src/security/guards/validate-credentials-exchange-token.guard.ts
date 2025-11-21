@@ -8,6 +8,8 @@ import {
 import type { Request } from "express";
 import type { CanActivate, ExecutionContext } from "@nestjs/common";
 
+import { GET_RS_VIA_MAPPED_NAME } from "src/cache/constants/lua-scripts.constants";
+
 import { RedisService } from "src/redis/redis.service";
 import { CryptoService } from "src/crypto/crypto.service";
 import { CacheKeysService } from "src/cache/providers/cache-keys.service";
@@ -38,12 +40,15 @@ export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
     if (!clientId || !clientSecret)
       throw new ForbiddenException("Client ID and Secret are required");
 
-    const globalAppKey = this.cacheKeysService.getGlobalApplicationsKey();
+    const key = this.cacheKeysService.getGlobalResourceServerLookupKey();
 
     let registry: string | null;
 
     try {
-      registry = await this.redisService.hget(globalAppKey, clientId);
+      registry = (await this.redisService.eval(GET_RS_VIA_MAPPED_NAME, 1, [
+        key,
+        clientId,
+      ])) as string;
     } catch (error) {
       console.error("Redis Connection Error during S2S Auth:", error);
 
@@ -64,6 +69,8 @@ export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
       if (!matches) throw new ForbiddenException("Invalid client credentials.");
 
       // TODO: Add logging/auditing here before returning true
+
+      request["resourceServer"] = app;
 
       return true;
     } catch (error) {

@@ -15,7 +15,7 @@ import {
   IAMObjectKey,
 } from "../decorators/object-method.decorator";
 
-import { HTTP_RESPONSES } from "src/commons/responses/http.responses";
+import { ERROR_CODES } from "src/commons/responses/http.responses";
 import { IAM_CONSTANTS_ENVS } from "../constants/iam.constants";
 
 import { RedisService } from "src/redis/redis.service";
@@ -58,21 +58,21 @@ export class ValidateObjectMethodAccessGuard implements CanActivate {
     );
 
     if (!object || !method)
-      throw new NotFoundException("Resource definition not found");
+      throw new NotFoundException(ERROR_CODES.SECURITY_RESOURCE_NOT_FOUND);
 
     const objectParsed = JSON.parse(object) as Object;
     const methodParsed = JSON.parse(method) as Method;
 
     if (!objectParsed.isActive)
       throw new ForbiddenException({
-        ...HTTP_RESPONSES[403].RESOURCE_DISABLED_FORBIDDEN,
         resource: objectParsed.name,
+        errorCode: ERROR_CODES.SECURITY_RESOURCE_DISABLED,
       });
 
     if (!methodParsed.isActive)
       throw new ForbiddenException({
-        ...HTTP_RESPONSES[403].RESOURCE_DISABLED_FORBIDDEN,
         resource: methodParsed.name,
+        errorCode: ERROR_CODES.SECURITY_RESOURCE_DISABLED,
       });
 
     return true;

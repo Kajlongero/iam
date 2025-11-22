@@ -15,6 +15,7 @@ import { CryptoService } from "src/crypto/crypto.service";
 import { CacheKeysService } from "src/cache/providers/cache-keys.service";
 
 import type { Application } from "generated/prisma";
+import { ERROR_CODES } from "src/commons/responses/http.responses";
 
 @Injectable()
 export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
@@ -38,7 +39,7 @@ export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
     if (typeof rawClientSecret === "string") clientSecret = rawClientSecret;
 
     if (!clientId || !clientSecret)
-      throw new ForbiddenException("Client ID and Secret are required");
+      throw new ForbiddenException(ERROR_CODES.RS_MISSING_CREDENTIALS);
 
     const key = this.cacheKeysService.getGlobalResourceServerLookupKey();
 
@@ -53,11 +54,12 @@ export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
       console.error("Redis Connection Error during S2S Auth:", error);
 
       throw new InternalServerErrorException(
-        "Authentication service unavailable."
+        ERROR_CODES.AUTH_SERVICE_UNAVAILABLE
       );
     }
 
-    if (!registry) throw new ForbiddenException("Invalid client credentials.");
+    if (!registry)
+      throw new ForbiddenException(ERROR_CODES.RS_INVALID_CREDENTIALS);
 
     try {
       const app = JSON.parse(registry) as Application;
@@ -66,7 +68,8 @@ export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
         clientSecret,
         app.clientSecret
       );
-      if (!matches) throw new ForbiddenException("Invalid client credentials.");
+      if (!matches)
+        throw new ForbiddenException(ERROR_CODES.RS_INVALID_CREDENTIALS);
 
       // TODO: Add logging/auditing here before returning true
 
@@ -76,7 +79,7 @@ export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
     } catch (error) {
       if (error instanceof ForbiddenException) throw error;
 
-      throw new ForbiddenException("Authentication validation failed.");
+      throw new ForbiddenException(ERROR_CODES.AUTH_FAILED);
     }
   }
 }

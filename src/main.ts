@@ -1,3 +1,4 @@
+import { Logger } from "nestjs-pino";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 
@@ -9,6 +10,8 @@ import { I18nExceptionFilter } from "./commons/filters/i18n-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.useLogger(app.get(Logger));
 
   app.useGlobalPipes(
     new ValidationPipe({

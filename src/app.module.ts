@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
+import { LoggerModule } from "nestjs-pino";
 
 import { AuthModule } from "./auth/auth.module";
 import { CacheModule } from "./cache/cache.module";
@@ -13,6 +14,7 @@ import { IamConsistencyModule } from "./iam-consistency/iam-consistency.module";
 
 @Module({
   imports: [
+    LoggerModule.forRoot(),
     ConfigModule.forRoot({ cache: true }),
     AuthModule,
     CacheModule,

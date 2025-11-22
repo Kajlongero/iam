@@ -14,6 +14,7 @@ import { PreloadApplicationsService } from "./providers/preload-applications.ser
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 import { PreloadUserPermissionsService } from "./providers/preload-user-permissions.service";
 import { PreloadApiPermissionsService } from "./providers/preload-resource-server-permissions.service";
+import { PreloadResourceServers } from "./providers/preload-resource-servers.service";
 
 @Module({
   exports: [CacheService, CacheKeysService, RedisService],
@@ -23,6 +24,7 @@ import { PreloadApiPermissionsService } from "./providers/preload-resource-serve
     CacheService,
     CacheKeysService,
     PreloadRolesService,
+    PreloadResourceServers,
     PreloadApplicationsService,
     PreloadObjectMethodsService,
     PreloadApiPermissionsService,

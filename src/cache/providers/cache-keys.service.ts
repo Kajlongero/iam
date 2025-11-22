@@ -207,10 +207,28 @@ export class CacheKeysService {
   }
 
   /**
+   * Retrieve if a clientId is blocked for many attempts
+   * @param clientId Client ID
+   * @returns
+   */
+  getBlockedClientsByClientId(clientId: string) {
+    return `iam:security:rate-limit:blocked:${clientId}`;
+  }
+
+  /**
    * Retrieve attempts of IPs to access to limited resources key
    * @param ip IP Adress
    */
   getAttemptsOfClientByIp(ip: string) {
     return `iam:security:rate-limit:attempts:${ip}`;
+  }
+
+  /**
+   * Retrieve attempts to generate a exchange token from a clientId
+   * @param clientId Client ID
+   * @returns
+   */
+  getAttemptsOfClientByClientId(clientId: string) {
+    return `iam:security:rate-limit:attempts:${clientId}`;
   }
 }

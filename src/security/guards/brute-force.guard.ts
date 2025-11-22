@@ -43,8 +43,9 @@ export class BruteForceGuard implements CanActivate {
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request = ctx.switchToHttp().getRequest();
-
+    const clientId = req.headers["x-client-id"] as string;
     const xForwardedFor = req.headers["x-forwarded-for"];
+
     const ip = (
       Array.isArray(xForwardedFor)
         ? xForwardedFor[0]
@@ -53,8 +54,13 @@ export class BruteForceGuard implements CanActivate {
 
     const sanitizedIp = this.sanitizeIp(ip);
 
-    const block = this.cacheKeysService.getBlockedClientsByIp(sanitizedIp);
-    const attempts = this.cacheKeysService.getAttemptsOfClientByIp(sanitizedIp);
+    const block = clientId
+      ? this.cacheKeysService.getBlockedClientsByClientId(clientId)
+      : this.cacheKeysService.getBlockedClientsByIp(sanitizedIp);
+
+    const attempts = clientId
+      ? this.cacheKeysService.getAttemptsOfClientByClientId(clientId)
+      : this.cacheKeysService.getAttemptsOfClientByIp(sanitizedIp);
 
     const isBlocked = await this.redisService.eval(
       GET_IP_BRUTE_FORCE_STATUS,

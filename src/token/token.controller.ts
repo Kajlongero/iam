@@ -9,6 +9,7 @@ import {
 import { TokenService } from "./token.service";
 
 import { ValidateCredentialsExchangeTokenGuard } from "src/security/guards/validate-credentials-exchange-token.guard";
+import { BruteForceGuard } from "src/security/guards/brute-force.guard";
 
 @Controller("token")
 export class TokenController {
@@ -16,7 +17,7 @@ export class TokenController {
 
   @Post("exchange")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(ValidateCredentialsExchangeTokenGuard)
+  @UseGuards(BruteForceGuard, ValidateCredentialsExchangeTokenGuard)
   exchange() {}
 
   @Post("refresh")

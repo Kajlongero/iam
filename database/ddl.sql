@@ -194,6 +194,30 @@ PARTITION BY
 CREATE INDEX idx_sessions_auth_id_refresh_token ON security.sessions (application_id, auth_id, refresh_token);
 
 CREATE TABLE IF NOT EXISTS
+  security.authorization_codes (
+    code VARCHAR(255) NOT NULL,
+    application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES security.users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    is_used BOOLEAN NOT NULL DEFAULT FALSE,
+    ip_address INET,
+    user_agent TEXT,
+    redirect_uri TEXT NOT NULL,
+    code_challenge VARCHAR(255),
+    code_challenge_method VARCHAR(10) DEFAULT 'S256',
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (code, application_id)
+  )
+PARTITION BY
+  LIST (application_id);
+
+CREATE INDEX idx_auth_codes_expires_at ON security.authorization_codes (expires_at)
+WHERE
+  is_used = FALSE;
+
+CREATE INDEX idx_auth_codes_user_id ON security.authorization_codes (user_id);
+
+CREATE TABLE IF NOT EXISTS
   access_control.permissions (
     id SERIAL PRIMARY KEY,
     name VARCHAR(128) NOT NULL,
@@ -201,11 +225,30 @@ CREATE TABLE IF NOT EXISTS
     is_editable BOOLEAN NOT NULL DEFAULT TRUE,
     is_api_scope BOOLEAN NOT NULL DEFAULT FALSE,
     application_id INTEGER REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (application_id, name)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
 
+CREATE UNIQUE INDEX uix_permissions_name_app ON access_control.permissions (name, application_id) NULLS NOT DISTINCT;
+
 CREATE INDEX idx_permission_application_id ON access_control.permissions (application_id);
+
+CREATE TABLE IF NOT EXISTS
+  security.authorization_code_scopes (
+    permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    application_id INTEGER NOT NULL,
+    authorization_code_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (
+      authorization_code_id,
+      permission_id,
+      application_id
+    ),
+    FOREIGN KEY (authorization_code_id, application_id) REFERENCES security.authorization_codes (code, application_id) ON UPDATE CASCADE ON DELETE CASCADE
+  )
+PARTITION BY
+  LIST (application_id);
+
+CREATE INDEX idx_auth_code_scopes_permission ON security.authorization_code_scopes (permission_id);
 
 CREATE TABLE IF NOT EXISTS
   access_control.permission_importance_levels (
@@ -358,3 +401,7 @@ CREATE TABLE IF NOT EXISTS
       application_id
     )
   );
+
+CREATE INDEX idx_consumption_receptor ON access_control.resource_server_consumption_permissions (receptor_resource_server_id);
+
+CREATE INDEX idx_consumption_application ON access_control.resource_server_consumption_permissions (application_id);

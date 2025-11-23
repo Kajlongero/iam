@@ -15,3 +15,7 @@ CREATE SCHEMA management;
 CREATE SCHEMA access_control;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Execute `database/data/status.sql`
+-- Execute `database/data/seed.sql`
+-- Execute `database/data/object.methods.sql`

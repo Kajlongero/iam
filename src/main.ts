@@ -2,11 +2,12 @@ import { Logger } from "nestjs-pino";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 
+import { AppModule } from "./app.module";
+
 import { setupSwagger } from "./swagger/setup";
 
-import { AppModule } from "./app.module";
-import { PrismaExceptionFilter } from "./prisma/filters/prisma.filters";
 import { I18nExceptionFilter } from "./commons/filters/i18n-exception.filter";
+import { PrismaExceptionFilter } from "./prisma/filters/prisma.filters";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

@@ -11,6 +11,7 @@ import {
 import { REDIS_CONSTANTS } from "src/commons/config/redis";
 
 import type { KeyValue } from "./interfaces/key-val.interface";
+import type { SetKeyValue } from "./interfaces/key-set.interface";
 import type { HashKeyValue } from "./interfaces/hash.interface";
 import type { CacheGetterSetters } from "src/cache/interfaces/cache-getters-setters.interface";
 
@@ -152,6 +153,17 @@ export class RedisService
   mhsetToPipeline(pipeline: ChainableCommander, data: HashKeyValue[]) {
     data.forEach((hashKeyValue) => {
       this.hsetToPipeline(pipeline, hashKeyValue);
+    });
+  }
+
+  saddToPipeline(pipeline: ChainableCommander, keyValue: SetKeyValue) {
+    if (keyValue.members.length > 0)
+      pipeline.sadd(keyValue.key, ...keyValue.members);
+  }
+
+  msaddToPipeline(pipeline: ChainableCommander, data: SetKeyValue[]) {
+    data.forEach((item) => {
+      this.saddToPipeline(pipeline, item);
     });
   }
 

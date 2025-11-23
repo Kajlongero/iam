@@ -231,4 +231,31 @@ export class CacheKeysService {
   getAttemptsOfClientByClientId(clientId: string) {
     return `iam:security:rate-limit:attempts:${clientId}`;
   }
+
+  /**
+   * Retrieves the SET of permissions that a specific RS exposes/offers.
+   * Key: iam:application:{APP_ID}:resource_servers:{RS_ID}:exposed
+   * Value: Set<string> (['invoice:create', 'user:read'])
+   * @param appClientId Application client id
+   * @param rsClientId Resource Server client id
+   */
+  getApplicationResourceServerExposedPermissionsKey(
+    appClientId: string,
+    rsClientId: string
+  ) {
+    return `iam:application:${appClientId}:resource_servers:${rsClientId}:exposed`;
+  }
+
+  /**
+   * Retrieves the HASH of permissions that a Consumer is allowed to use on a Receptor.
+   * Key: iam:application:{APP_ID}:resource_servers:{RECEPTOR}:consumers:{CONSUMER}
+   * Value: Hash (Field: permission_name -> Value: rules_json)
+   */
+  getApplicationResourceServerConsumptionPermissionsKey(
+    appClientId: string,
+    receptorClientId: string,
+    consumerClientId: string
+  ) {
+    return `iam:application:${appClientId}:resource_servers:${receptorClientId}:consumers:${consumerClientId}`;
+  }
 }

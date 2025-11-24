@@ -41,6 +41,7 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.env.testing.local
 
 # temp directory
 .temp
@@ -60,3 +61,5 @@ mongo-data
 redis-data
 pgadmin-data
 postgres-data
+
+database/seeds/15.update.client-ids.sql

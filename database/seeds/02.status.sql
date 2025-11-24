@@ -1,4 +1,6 @@
-INSERT INTO management.status (name) VALUES
+INSERT INTO
+  management.status (name)
+VALUES
   ('ACTIVE'),
   ('INACTIVE'),
   ('DELETED'),

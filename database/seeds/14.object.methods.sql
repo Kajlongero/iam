@@ -11,7 +11,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        id = 2
+        client_id = 'IAM_CORE_PLACEHOLDER'
     )
   ),
   (
@@ -24,7 +24,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        id = 2
+        client_id = 'IAM_CORE_PLACEHOLDER'
     )
   );
 
@@ -48,7 +48,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            id = 2
+            client_id = 'IAM_CORE_PLACEHOLDER'
         )
     )
   ),
@@ -69,7 +69,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            id = 2
+            client_id = 'IAM_CORE_PLACEHOLDER'
         )
     )
   ),
@@ -90,7 +90,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            id = 2
+            client_id = 'IAM_CORE_PLACEHOLDER'
         )
     )
   );

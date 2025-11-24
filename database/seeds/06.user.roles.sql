@@ -11,7 +11,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   );
 
@@ -41,7 +41,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     ),
     (
@@ -50,7 +50,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   );
 
@@ -80,7 +80,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     ),
     (
@@ -89,7 +89,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   ),
   (
@@ -109,7 +109,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     ),
     (
@@ -118,7 +118,7 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   ),
   (
@@ -138,7 +138,7 @@ VALUES
           FROM
             management.applications
           WHERE
-            client_id = ''
+            client_id = 'IAM_CORE_UI_PLACEHOLDER'
         )
     ),
     (
@@ -147,37 +147,6 @@ VALUES
       FROM
         management.applications
       WHERE
-        client_id = ''
-    )
-  );
-
--- Roles for applications
-INSERT INTO
-  access_control.roles (name, description, is_default, application_id)
-VALUES
-  (
-    'CORE',
-    'Core Role for systems that can do everything within the IAM',
-    FALSE,
-    (
-      SELECT
-        id
-      FROM
-        management.applications
-      WHERE
-        client_id = 'IAM_CORE_PLACEHOLDER' -- Client id of IAM Core (Not IAM CORE UI)
-    )
-  ),
-  (
-    'SUPERSYSTEM',
-    'Super System Role that can do everything within the IAM but a fewer permissions',
-    FALSE,
-    (
-      SELECT
-        id
-      FROM
-        management.applications
-      WHERE
-        client_id = 'IAM_CORE_PLACEHOLDER' -- Client id of IAM Core (Not IAM CORE UI)
+        client_id = 'IAM_CORE_UI_PLACEHOLDER'
     )
   );

@@ -6,6 +6,8 @@ import { PreloadApplicationsService } from "./providers/preload-applications.ser
 import { PreloadObjectMethodsService } from "./providers/preload-object-methods.service";
 import { PreloadApiPermissionsService } from "./providers/preload-resource-server-permissions.service";
 import { PreloadUserPermissionsService } from "./providers/preload-user-permissions.service";
+import { PreloadM2MExposedPermissionsService } from "./providers/preload-m2m-exposed-permissions.service";
+import { PreloadM2MConsumptionPermissionsService } from "./providers/preload-m2m-consumption-permissions.service";
 
 @Injectable()
 export class CacheService implements OnModuleInit {
@@ -15,7 +17,9 @@ export class CacheService implements OnModuleInit {
     private readonly preloadApplicationsService: PreloadApplicationsService,
     private readonly preloadObjectMethodsService: PreloadObjectMethodsService,
     private readonly preloadApiPermissionsService: PreloadApiPermissionsService,
-    private readonly preloadUserPermissionsService: PreloadUserPermissionsService
+    private readonly preloadUserPermissionsService: PreloadUserPermissionsService,
+    private readonly preloadM2MExposedPermissionsService: PreloadM2MExposedPermissionsService,
+    private readonly preloadM2MConsumptionPermissionsService: PreloadM2MConsumptionPermissionsService
   ) {}
 
   async onModuleInit() {
@@ -26,6 +30,8 @@ export class CacheService implements OnModuleInit {
       this.preloadObjectMethodsService.preload(),
       this.preloadApiPermissionsService.preload(),
       this.preloadUserPermissionsService.preload(),
+      this.preloadM2MExposedPermissionsService.preload(),
+      this.preloadM2MConsumptionPermissionsService.preload(),
     ]);
   }
 }

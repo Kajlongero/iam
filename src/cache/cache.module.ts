@@ -15,6 +15,8 @@ import { PreloadObjectMethodsService } from "./providers/preload-object-methods.
 import { PreloadUserPermissionsService } from "./providers/preload-user-permissions.service";
 import { PreloadApiPermissionsService } from "./providers/preload-resource-server-permissions.service";
 import { PreloadResourceServers } from "./providers/preload-resource-servers.service";
+import { PreloadM2MExposedPermissionsService } from "./providers/preload-m2m-exposed-permissions.service";
+import { PreloadM2MConsumptionPermissionsService } from "./providers/preload-m2m-consumption-permissions.service";
 
 @Module({
   exports: [CacheService, CacheKeysService, RedisService],
@@ -29,6 +31,8 @@ import { PreloadResourceServers } from "./providers/preload-resource-servers.ser
     PreloadObjectMethodsService,
     PreloadApiPermissionsService,
     PreloadUserPermissionsService,
+    PreloadM2MExposedPermissionsService,
+    PreloadM2MConsumptionPermissionsService,
   ],
 })
 export class CacheModule {}

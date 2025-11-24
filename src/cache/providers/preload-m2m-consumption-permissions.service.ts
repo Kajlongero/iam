@@ -12,9 +12,10 @@ import type { Application, Permission, ResourceServer } from "generated/prisma";
 
 interface IConsumptionPermissions {
   permission: Pick<Permission, "name">;
-  application: Pick<Application, "clientId">;
   clientResourceServer: Pick<ResourceServer, "clientId">;
-  receptorResourceServer: Pick<ResourceServer, "clientId">;
+  receptorResourceServer: Pick<ResourceServer, "clientId"> & {
+    application: Pick<Application, "clientId">;
+  };
 }
 
 @Injectable()
@@ -56,18 +57,13 @@ export class PreloadM2MConsumptionPermissionsService
     const map = new Map<string, Record<string, string>>();
 
     data.forEach((item) => {
-      const {
-        application,
-        permission,
-        clientResourceServer,
-        receptorResourceServer,
-      } = item;
+      const { permission, clientResourceServer, receptorResourceServer } = item;
 
       const key =
         this.cacheKeysService.getApplicationResourceServerConsumptionPermissionsKey(
-          application.clientId,
-          clientResourceServer.clientId,
-          receptorResourceServer.clientId
+          receptorResourceServer.application.clientId,
+          receptorResourceServer.clientId,
+          clientResourceServer.clientId
         );
 
       if (!map.has(key)) map.set(key, {});
@@ -84,7 +80,11 @@ export class PreloadM2MConsumptionPermissionsService
     const pipeline = this.redisService.pipeline();
     const elements = data as HashKeyValue[];
 
-    this.redisService.mhsetToPipeline(pipeline, elements);
+    elements.forEach((item) => {
+      pipeline.del(item.key);
+
+      this.redisService.hsetToPipeline(pipeline, item);
+    });
 
     await this.redisService.execPipeline(pipeline);
   }
@@ -94,15 +94,13 @@ export class PreloadM2MConsumptionPermissionsService
       {
         skip: offset,
         take: this.LIMIT,
+        where: {
+          isActive: true,
+        },
         orderBy: {
           createdAt: "asc",
         },
         select: {
-          application: {
-            select: {
-              clientId: true,
-            },
-          },
           permission: {
             select: {
               name: true,
@@ -116,6 +114,11 @@ export class PreloadM2MConsumptionPermissionsService
           receptorResourceServer: {
             select: {
               clientId: true,
+              application: {
+                select: {
+                  clientId: true,
+                },
+              },
             },
           },
         },

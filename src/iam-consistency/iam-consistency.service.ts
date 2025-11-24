@@ -30,7 +30,7 @@ export class IamConsistencyService implements OnModuleInit {
 
   async onModuleInit() {
     const clientId = this.configService.getOrThrow<string>(
-      IAM_CONSTANTS_ENVS.IAM_CORE_UI_CLIENT_ID
+      IAM_CONSTANTS_ENVS.IAM_CORE_CLIENT_ID
     );
 
     const controllers = this.discoveryService.getControllers();

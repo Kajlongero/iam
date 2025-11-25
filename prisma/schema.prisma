@@ -78,8 +78,8 @@ model Permission {
   id                                   Int                                   @id @default(autoincrement())
   name                                 String                                @db.VarChar(128)
   description                          String?
-  isApiScope                           Boolean                               @default(false) @map("is_api_scope")
   isEditable                           Boolean                               @default(true) @map("is_editable")
+  isApiScope                           Boolean                               @default(false) @map("is_api_scope")
   applicationId                        Int?                                  @map("application_id")
   createdAt                            DateTime                              @default(now()) @map("created_at") @db.Timestamptz(6)
   methodPermissions                    MethodPermission[]
@@ -91,8 +91,9 @@ model Permission {
   resourceServerMaxAllowedScopes       ResourceServerMaxAllowedScope[]
   roleAuthorityRestrictions            RoleAuthorityRestrictions[]
   rolePermissions                      RolePermission[]
+  authorizationCodeScopes              AuthorizationCodeScope[]
 
-  @@unique([applicationId, name])
+  @@unique([name, applicationId], map: "uix_permissions_name_app")
   @@index([applicationId], map: "idx_permission_application_id")
   @@map("permissions")
   @@schema("access_control")
@@ -142,7 +143,7 @@ model Role {
 }
 
 model Provider {
-  id           Int      @id @default(autoincrement()) @db.SmallInt
+  id           Int      @id @default(autoincrement())
   name         String   @unique @db.VarChar(50)
   description  String?
   strategyType String   @map("strategy_type") @db.VarChar(24)
@@ -220,6 +221,7 @@ model User {
   applications         Application[]
   applicationUsers     ApplicationUser[]
   auth                 Auth[]
+  authorizationCodes   AuthorizationCode[]
   passwordResets       PasswordReset[]
   profile              Profile?
 
@@ -290,7 +292,7 @@ model PermissionImportance {
 }
 
 model PermissionImportanceLevel {
-  id                   Int                    @id @default(autoincrement()) @db.SmallInt
+  id                   Int                    @id @default(autoincrement())
   name                 String                 @unique @db.VarChar(32)
   loggingPolicy        String                 @map("logging_policy") @db.VarChar(16)
   description          String?
@@ -339,6 +341,7 @@ model Application {
   id                                   Int                                   @id @default(autoincrement())
   url                                  String
   name                                 String                                @db.VarChar(96)
+  slug                                 String                                @unique @db.VarChar(128)
   clientId                             String                                @unique @map("client_id") @db.VarChar(96)
   clientSecret                         String                                @map("client_secret") @db.VarChar(255)
   redirectUrl                          String                                @map("redirect_url") @db.VarChar(255)
@@ -366,10 +369,12 @@ model Application {
   status                               Status                                @relation(fields: [statusId], references: [id])
   resourceServers                      ResourceServer[]
   applicationUsers                     ApplicationUser[]
+  authorizationCodes                   AuthorizationCode[]
   sessions                             Session[]
 
   @@index([clientId], map: "idx_applications_client_id")
   @@index([url], map: "idx_applications_url")
+  @@index([slug], map: "idx_applications_slug")
   @@map("applications")
   @@schema("management")
 }
@@ -444,6 +449,8 @@ model ResourceServerConsumptionPermission {
   permission               Permission     @relation(fields: [permissionId], references: [id])
 
   @@id([clientResourceServerId, receptorResourceServerId, permissionId, applicationId])
+  @@index([applicationId], map: "idx_consumption_application")
+  @@index([receptorResourceServerId], map: "idx_consumption_receptor")
   @@map("resource_server_consumption_permissions")
   @@schema("access_control")
 }
@@ -494,4 +501,42 @@ model RoleAuthorityRestrictions {
   @@id([executingRoleId, targetRoleId, permissionId, applicationId])
   @@map("role_authority_restrictions")
   @@schema("access_control")
+}
+
+/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
+model AuthorizationCodeScope {
+  permissionId        Int               @map("permission_id")
+  applicationId       Int               @map("application_id")
+  authorizationCodeId String            @map("authorization_code_id") @db.VarChar(255)
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  authorizationCode   AuthorizationCode @relation(fields: [authorizationCodeId, applicationId], references: [code, applicationId], onDelete: Cascade)
+  permission          Permission        @relation(fields: [permissionId], references: [id])
+
+  @@id([authorizationCodeId, permissionId, applicationId])
+  @@index([permissionId], map: "idx_auth_code_scopes_permission")
+  @@map("authorization_code_scopes")
+  @@schema("security")
+}
+
+/// This table is a partition table and requires additional setup for migrations. Visit https://pris.ly/d/partition-tables for more info.
+model AuthorizationCode {
+  code                    String                   @db.VarChar(255)
+  applicationId           Int                      @map("application_id")
+  userId                  String                   @map("user_id") @db.Uuid
+  isUsed                  Boolean                  @default(false) @map("is_used")
+  ipAddress               String?                  @map("ip_address") @db.Inet
+  userAgent               String?                  @map("user_agent")
+  redirectUri             String                   @map("redirect_uri")
+  codeChallenge           String?                  @map("code_challenge") @db.VarChar(255)
+  codeChallengeMethod     String?                  @default("S256") @map("code_challenge_method") @db.VarChar(10)
+  expiresAt               DateTime                 @map("expires_at") @db.Timestamptz(6)
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  authorizationCodeScopes AuthorizationCodeScope[]
+  application             Application              @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([code, applicationId])
+  @@index([userId], map: "idx_auth_codes_user_id")
+  @@map("authorization_codes")
+  @@schema("security")
 }

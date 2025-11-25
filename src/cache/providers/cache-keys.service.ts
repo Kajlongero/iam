@@ -11,6 +11,13 @@ export class CacheKeysService {
   }
 
   /**
+   * Find applications by their slug
+   */
+  getGlobalApplicationsLookup() {
+    return `iam:application:lookup`;
+  }
+
+  /**
    * Unique Application data cache key
    * @param clientId {string}
    */

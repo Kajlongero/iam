@@ -42,17 +42,30 @@ export class PreloadApplicationsService implements CachePreloader<Application> {
 
   format<J>(data: Application[]): J {
     const key = this.cacheKeysService.getGlobalApplicationsKey();
+    const slugLookupKey = this.cacheKeysService.getGlobalApplicationsLookup();
+
     const map: Record<string, string> = {};
+    const slugLookupMap: Record<string, string> = {};
 
-    data.forEach((app) => (map[app.clientId] = JSON.stringify(app)));
+    data.forEach((app) => {
+      map[app.clientId] = JSON.stringify(app);
 
-    return MapToHashKeyValue(key, map) as J;
+      slugLookupMap[app.slug as string] = app.clientId;
+    });
+
+    return [
+      MapToHashKeyValue(key, map),
+      MapToHashKeyValue(slugLookupKey, slugLookupMap),
+    ] as J;
   }
 
   async save<T>(args: T): Promise<void> {
     const pipeline = this.redisService.pipeline();
 
-    this.redisService.hsetToPipeline(pipeline, args as HashKeyValue);
+    const [appHash, slugLookupHash] = args as [HashKeyValue, HashKeyValue];
+
+    this.redisService.hsetToPipeline(pipeline, appHash);
+    this.redisService.hsetToPipeline(pipeline, slugLookupHash);
 
     await pipeline.exec();
   }

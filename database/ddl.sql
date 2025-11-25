@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS
     id SERIAL PRIMARY KEY,
     url TEXT NOT NULL,
     name VARCHAR(96) NOT NULL,
+    slug VARCHAR(128) NOT NULL UNIQUE,
     client_id VARCHAR(96) NOT NULL UNIQUE,
     client_secret VARCHAR(255) NOT NULL,
     redirect_url VARCHAR(255) NOT NULL,
@@ -34,6 +35,8 @@ CREATE TABLE IF NOT EXISTS
   );
 
 CREATE INDEX idx_applications_url ON management.applications (url);
+
+CREATE INDEX idx_applications_slug ON management.applications (slug);
 
 CREATE INDEX idx_applications_client_id ON management.applications (client_id);
 
@@ -52,7 +55,7 @@ CREATE TABLE IF NOT EXISTS
 
 CREATE TABLE IF NOT EXISTS
   management.providers (
-    id SMALLSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
     strategy_type VARCHAR(24) NOT NULL,
@@ -252,7 +255,7 @@ CREATE INDEX idx_auth_code_scopes_permission ON security.authorization_code_scop
 
 CREATE TABLE IF NOT EXISTS
   access_control.permission_importance_levels (
-    id SMALLSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(32) NOT NULL UNIQUE,
     logging_policy VARCHAR(16) NOT NULL,
     description TEXT,

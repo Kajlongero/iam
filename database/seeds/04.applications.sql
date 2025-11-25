@@ -5,6 +5,7 @@ INSERT INTO
   management.applications (
     url,
     name,
+    slug,
     client_id,
     client_secret,
     redirect_url,
@@ -15,6 +16,7 @@ VALUES
   (
     'http://localhost:3000',
     'IAM_CORE',
+    'IAM_CORE_0cab234cddfa7162',
     'IAM_CORE_PLACEHOLDER', -- Fill the client id with the client id from .env
     '$argon2id$v=19$m=256,t=1,p=1$rhbP9+lC8bDgBWA18qYq2g$9jgAYiKIWHcya9LeiHqPB2i0TV6iVVa9fCZn9+t7gNk',
     'http://localhost:3000',
@@ -31,6 +33,7 @@ VALUES
   (
     'http://localhost:5173',
     'IAM_CORE_UI',
+    'IAM_CORE_UI_039b32d58e3b6a76',
     'IAM_CORE_UI_PLACEHOLDER',
     '$argon2id$v=19$m=256,t=1,p=1$CmfWdMaMesKpDlqIqxAd5A$vbvf2IpsudJZZNiHN9Eg3Lzl76MbxQZjqlWuqB8i2nc',
     'http://localhost:5173',
@@ -47,6 +50,7 @@ VALUES
   (
     'http://localhost:4000',
     'FOOD_APP',
+    'FOOD_APP_6e135a977bc3cdba',
     'FOOD_APP_PLACEHOLDER',
     '$argon2id$v=19$m=256,t=1,p=1$kaIFSC67tdNpWW9nEQ2WUw$MzV0pH+P8Zmofrpetb50H0fSFk/erNNOBf6SkHqmuAI', -- Hash
     'http://localhost:4000/callback',

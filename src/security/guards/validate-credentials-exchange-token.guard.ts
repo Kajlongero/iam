@@ -8,14 +8,14 @@ import {
 import type { Request } from "express";
 import type { CanActivate, ExecutionContext } from "@nestjs/common";
 
+import { ERROR_CODES } from "src/commons/responses/http.responses";
 import { GET_RS_VIA_MAPPED_NAME } from "src/cache/constants/lua-scripts.constants";
 
 import { RedisService } from "src/redis/redis.service";
 import { CryptoService } from "src/crypto/crypto.service";
 import { CacheKeysService } from "src/cache/providers/cache-keys.service";
 
-import type { Application } from "generated/prisma";
-import { ERROR_CODES } from "src/commons/responses/http.responses";
+import type { ResourceServer } from "generated/prisma";
 
 @Injectable()
 export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
@@ -62,18 +62,18 @@ export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
       throw new ForbiddenException(ERROR_CODES.RS_INVALID_CREDENTIALS);
 
     try {
-      const app = JSON.parse(registry) as Application;
+      const rs = JSON.parse(registry) as ResourceServer;
 
       const matches = await this.cryptoService.argonCompare(
         clientSecret,
-        app.clientSecret
+        rs.clientSecret
       );
       if (!matches)
         throw new ForbiddenException(ERROR_CODES.RS_INVALID_CREDENTIALS);
 
       // TODO: Add logging/auditing here before returning true
 
-      request["resourceServer"] = app;
+      request["resourceServer"] = rs;
 
       return true;
     } catch (error) {

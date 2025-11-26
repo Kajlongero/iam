@@ -56,6 +56,7 @@ export class PreloadResourceServers
   format<J>(data: IApplicationResourceServer[]): J {
     const resourceServersMap = new Map<string, Record<string, string>>();
     const resourceServersNameMap = new Map<string, Record<string, string>>();
+    const resourceServersSlugMap = new Map<string, Record<string, string>>();
 
     const globalLookupMap: Record<string, string> = {};
 
@@ -72,6 +73,8 @@ export class PreloadResourceServers
         this.cacheKeysService.getApplicationsResourceServersNamesMappedKey(
           clientId
         );
+      const rsSlugKey =
+        this.cacheKeysService.getApplicationResourceServerSlugKey(clientId);
 
       if (!resourceServersMap.has(rsKey)) {
         resourceServersMap.set(rsKey, {});
@@ -81,14 +84,23 @@ export class PreloadResourceServers
         resourceServersNameMap.set(rsNameKey, {});
       }
 
+      if (!resourceServersSlugMap.has(rsSlugKey)) {
+        resourceServersSlugMap.set(rsSlugKey, {});
+      }
+
       const rsElem = resourceServersMap.get(rsKey) as Record<string, string>;
       const rsNameElem = resourceServersNameMap.get(rsNameKey) as Record<
+        string,
+        string
+      >;
+      const rsSlugElem = resourceServersSlugMap.get(rsSlugKey) as Record<
         string,
         string
       >;
 
       rsElem[rest.clientId] = JSON.stringify(rest);
       rsNameElem[rest.name] = rest.clientId;
+      rsSlugElem[rest.slug as string] = rest.clientId;
 
       globalLookupMap[rest.clientId] = application.clientId;
     });
@@ -96,6 +108,7 @@ export class PreloadResourceServers
     return [
       MapToHashKeyValueArray(resourceServersMap),
       MapToHashKeyValueArray(resourceServersNameMap),
+      MapToHashKeyValueArray(resourceServersSlugMap),
       MapToHashKeyValue(globalLookupKey, globalLookupMap),
     ] as J;
   }
@@ -103,13 +116,15 @@ export class PreloadResourceServers
   async save<J>(data: J): Promise<void> {
     const pipeline = this.redisService.pipeline();
 
-    const [resourceServers, resourceServersNames, lookupHash] = data as [
-      HashKeyValue[],
-      HashKeyValue[],
-      HashKeyValue,
-    ];
+    const [
+      resourceServers,
+      resourceServersNames,
+      resourceServersSlugs,
+      lookupHash,
+    ] = data as [HashKeyValue[], HashKeyValue[], HashKeyValue[], HashKeyValue];
 
     this.redisService.mhsetToPipeline(pipeline, resourceServers);
+    this.redisService.mhsetToPipeline(pipeline, resourceServersSlugs);
     this.redisService.mhsetToPipeline(pipeline, resourceServersNames);
 
     if (lookupHash.values.length > 0)

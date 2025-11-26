@@ -384,6 +384,7 @@ model Application {
 model ResourceServer {
   id                             Int                                   @id @default(autoincrement())
   name                           String                                @db.VarChar(96)
+  slug                           String                                @unique @db.VarChar(128)
   clientId                       String                                @map("client_id") @db.VarChar(96)
   clientSecret                   String                                @map("client_secret") @db.VarChar(255)
   isActive                       Boolean                               @default(true) @map("is_active")
@@ -399,6 +400,7 @@ model ResourceServer {
   application                    Application                           @relation(fields: [applicationId], references: [id])
 
   @@unique([applicationId, name])
+  @@index([slug], map: "idx_resource_servers_slug")
   @@map("resource_servers")
   @@schema("management")
 }

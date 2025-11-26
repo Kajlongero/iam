@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS
   management.resource_servers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(96) NOT NULL,
+    slug VARCHAR(128) NOT NULL UNIQUE,
     client_id VARCHAR(96) NOT NULL,
     client_secret VARCHAR(255) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -52,6 +53,8 @@ CREATE TABLE IF NOT EXISTS
     updated_at TIMESTAMPTZ,
     UNIQUE (application_id, name)
   );
+
+CREATE INDEX idx_resource_servers_slug ON management.resource_servers (slug);
 
 CREATE TABLE IF NOT EXISTS
   management.providers (

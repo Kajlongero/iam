@@ -29,25 +29,27 @@ export class ValidateCredentialsExchangeTokenGuard implements CanActivate {
     const request: Request = ctx.switchToHttp().getRequest();
     const headers = request.headers;
 
-    let clientId: string | undefined;
-    let clientSecret: string | undefined;
-
     const rawClientId = headers["x-client-id"];
     const rawClientSecret = headers["x-client-secret"];
 
-    if (typeof rawClientId === "string") clientId = rawClientId;
-    if (typeof rawClientSecret === "string") clientSecret = rawClientSecret;
+    const clientId = Array.isArray(rawClientId) ? rawClientId[0] : rawClientId;
+    const clientSecret = Array.isArray(rawClientSecret)
+      ? rawClientSecret[0]
+      : rawClientSecret;
 
     if (!clientId || !clientSecret)
       throw new ForbiddenException(ERROR_CODES.RS_MISSING_CREDENTIALS);
 
-    const key = this.cacheKeysService.getGlobalResourceServerLookupKey();
+    const rsLookupKey = this.cacheKeysService.getGlobalRsLookupKey();
+    const appLookupKey =
+      this.cacheKeysService.getGlobalApplicationSlugByRsClientIdLookupKey();
 
     let registry: string | null;
 
     try {
-      registry = (await this.redisService.eval(GET_RS_VIA_MAPPED_NAME, 1, [
-        key,
+      registry = (await this.redisService.eval(GET_RS_VIA_MAPPED_NAME, 2, [
+        rsLookupKey,
+        appLookupKey,
         clientId,
       ])) as string;
     } catch (error) {

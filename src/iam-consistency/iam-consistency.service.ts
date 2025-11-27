@@ -29,8 +29,8 @@ export class IamConsistencyService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const clientId = this.configService.getOrThrow<string>(
-      IAM_CONSTANTS_ENVS.IAM_CORE_CLIENT_ID
+    const appSlug = this.configService.getOrThrow<string>(
+      IAM_CONSTANTS_ENVS.IAM_CORE_SLUG
     );
 
     const controllers = this.discoveryService.getControllers();
@@ -47,7 +47,7 @@ export class IamConsistencyService implements OnModuleInit {
         this.reflector.get<string>(IAMObjectKey, metatype) || metatype.name;
 
       const objectKey = this.cacheKeysService.getApplicationsObjectKey(
-        clientId,
+        appSlug,
         objectName
       );
 

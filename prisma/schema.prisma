@@ -388,6 +388,7 @@ model ResourceServer {
   clientId                       String                                @map("client_id") @db.VarChar(96)
   clientSecret                   String                                @map("client_secret") @db.VarChar(255)
   isActive                       Boolean                               @default(true) @map("is_active")
+  isGateway                      Boolean                               @default(false) @map("is_gateway")
   applicationId                  Int                                   @map("application_id")
   createdAt                      DateTime                              @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt                      DateTime?                             @map("updated_at") @db.Timestamptz(6)

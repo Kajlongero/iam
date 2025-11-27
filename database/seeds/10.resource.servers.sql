@@ -5,12 +5,13 @@ INSERT INTO
     client_id,
     client_secret,
     application_id,
-    is_active
+    is_active,
+    is_gateway
   )
 VALUES
   (
     'iam-system-api',
-    'iam-syste-api_f5981a16c78b035d',
+    'iam-system-api_f5981a16c78b035d',
     'IAM_SYSTEM_API_CLIENT_ID',
     '$argon2id$v=19$m=256,t=1,p=1$MPgnCKnte28wZpQOLS4WTQ$92TLWxBmm0euOZmaoJIUDTckDrrnkc2Q3UDebbYhqaU',
     (
@@ -21,6 +22,7 @@ VALUES
       WHERE
         client_id = 'IAM_CORE_PLACEHOLDER'
     ),
+    TRUE,
     TRUE
   ),
   (
@@ -36,6 +38,7 @@ VALUES
       WHERE
         client_id = 'IAM_CORE_UI_PLACEHOLDER'
     ),
+    TRUE,
     TRUE
   ),
   (
@@ -51,7 +54,8 @@ VALUES
       WHERE
         client_id = 'FOOD_APP_PLACEHOLDER'
     ),
-    TRUE
+    TRUE,
+    FALSE
   ),
   (
     'billing-service',
@@ -66,5 +70,6 @@ VALUES
       WHERE
         client_id = 'FOOD_APP_PLACEHOLDER'
     ),
-    TRUE
+    TRUE,
+    FALSE
   );

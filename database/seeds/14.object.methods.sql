@@ -26,6 +26,19 @@ VALUES
       WHERE
         client_id = 'IAM_CORE_PLACEHOLDER'
     )
+  ),
+  (
+    'TokenController',
+    'Controller focused on token flows between services',
+    TRUE,
+    (
+      SELECT
+        id
+      FROM
+        management.applications
+      WHERE
+        client_id = 'IAM_CORE_PLACEHOLDER'
+    )
   );
 
 INSERT INTO
@@ -93,4 +106,46 @@ VALUES
             client_id = 'IAM_CORE_PLACEHOLDER'
         )
     )
-  );
+  ),
+  (
+    'exchange',
+    'Token Exchange OAuth2.0 flow procedure',
+    TRUE,
+    (
+      SELECT
+        id
+      FROM
+        access_control.objects
+      WHERE
+        name = 'TokenController'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = 'IAM_CORE_PLACEHOLDER'
+        )
+    )
+  ),
+  (
+    'refresh',
+    'Refresh Token to continue the session',
+    TRUE,
+    (
+      SELECT
+        id
+      FROM
+        access_control.objects
+      WHERE
+        name = 'TokenController'
+        AND application_id = (
+          SELECT
+            id
+          FROM
+            management.applications
+          WHERE
+            client_id = 'IAM_CORE_PLACEHOLDER'
+        )
+    )
+  ),

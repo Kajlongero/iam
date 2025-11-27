@@ -42,20 +42,20 @@ export class PreloadApplicationsService implements CachePreloader<Application> {
 
   format<J>(data: Application[]): J {
     const key = this.cacheKeysService.getGlobalApplicationsKey();
-    const slugLookupKey = this.cacheKeysService.getGlobalApplicationsLookup();
+    const lookup = this.cacheKeysService.getGlobalApplicationsLookupKey();
 
-    const map: Record<string, string> = {};
-    const slugLookupMap: Record<string, string> = {};
+    const appMap: Record<string, string> = {};
+    const slugMap: Record<string, string> = {};
 
     data.forEach((app) => {
-      map[app.clientId] = JSON.stringify(app);
+      appMap[app.slug] = JSON.stringify(app);
 
-      slugLookupMap[app.slug as string] = app.clientId;
+      slugMap[app.clientId] = app.slug;
     });
 
     return [
-      MapToHashKeyValue(key, map),
-      MapToHashKeyValue(slugLookupKey, slugLookupMap),
+      MapToHashKeyValue(key, appMap),
+      MapToHashKeyValue(lookup, slugMap),
     ] as J;
   }
 

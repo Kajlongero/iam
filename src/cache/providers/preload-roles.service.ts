@@ -15,7 +15,7 @@ import type { CachePreloader } from "../interfaces/preloaders.interface";
 import type { Role, Application, Prisma } from "generated/prisma";
 
 interface IApplicationRoles extends Role {
-  application: Pick<Application, "clientId">;
+  application: Pick<Application, "clientId" | "slug">;
 }
 
 interface ApplicationRolesAndHierarchies {
@@ -41,6 +41,7 @@ export class PreloadRolesService implements CachePreloader<IApplicationRoles> {
       include: {
         application: {
           select: {
+            slug: true,
             clientId: true,
           },
         },
@@ -61,12 +62,13 @@ export class PreloadRolesService implements CachePreloader<IApplicationRoles> {
 
   format<T>(data: IApplicationRoles[]): T {
     const rolesByCacheKey = new Map<string, Record<string, Role>>();
+
     const globalKeyName = this.cacheKeysService.getApplicationsGlobalRolesKey();
 
     data.forEach((item) => {
       const { application, ...role } = item;
 
-      const key = application?.clientId || globalKeyName;
+      const key = application?.slug || globalKeyName;
 
       if (!rolesByCacheKey.has(key)) rolesByCacheKey.set(key, {});
 

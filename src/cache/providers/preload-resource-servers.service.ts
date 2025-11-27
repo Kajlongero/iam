@@ -16,7 +16,7 @@ import type { CachePreloader } from "../interfaces/preloaders.interface";
 import type { Application, Prisma, ResourceServer } from "generated/prisma";
 
 interface IApplicationResourceServer extends ResourceServer {
-  application: Pick<Application, "clientId">;
+  application: Pick<Application, "clientId" | "slug">;
 }
 
 @Injectable()
@@ -37,6 +37,7 @@ export class PreloadResourceServers
         include: {
           application: {
             select: {
+              slug: true,
               clientId: true,
             },
           },
@@ -54,81 +55,62 @@ export class PreloadResourceServers
   }
 
   format<J>(data: IApplicationResourceServer[]): J {
+    const lookupKey = this.cacheKeysService.getGlobalRsLookupKey();
+    const lookupAppKey =
+      this.cacheKeysService.getGlobalApplicationSlugByRsClientIdLookupKey();
+
+    const lookupMap: Record<string, string> = {};
+    const lookupAppMap: Record<string, string> = {};
+
     const resourceServersMap = new Map<string, Record<string, string>>();
-    const resourceServersNameMap = new Map<string, Record<string, string>>();
-    const resourceServersSlugMap = new Map<string, Record<string, string>>();
-
-    const globalLookupMap: Record<string, string> = {};
-
-    const globalLookupKey =
-      this.cacheKeysService.getGlobalResourceServerLookupKey();
+    const resourceServersLookupMap = new Map<string, Record<string, string>>();
 
     data.forEach((item) => {
       const { application, ...rest } = item;
-      const { clientId } = application;
 
-      const rsKey =
-        this.cacheKeysService.getApplicationsResourceServersKey(clientId);
-      const rsNameKey =
-        this.cacheKeysService.getApplicationsResourceServersNamesMappedKey(
-          clientId
+      const rsAppSlug = this.cacheKeysService.getApplicationResourceServersKey(
+        application.slug
+      );
+
+      const rsLookupKey =
+        this.cacheKeysService.getApplicationResourceServerLookupKey(
+          application.slug
         );
-      const rsSlugKey =
-        this.cacheKeysService.getApplicationResourceServerSlugKey(clientId);
 
-      if (!resourceServersMap.has(rsKey)) {
-        resourceServersMap.set(rsKey, {});
-      }
+      if (!resourceServersMap.has(rsAppSlug))
+        resourceServersMap.set(rsAppSlug, {});
 
-      if (!resourceServersNameMap.has(rsNameKey)) {
-        resourceServersNameMap.set(rsNameKey, {});
-      }
+      if (!resourceServersLookupMap.has(rsLookupKey))
+        resourceServersLookupMap.set(rsLookupKey, {});
 
-      if (!resourceServersSlugMap.has(rsSlugKey)) {
-        resourceServersSlugMap.set(rsSlugKey, {});
-      }
+      const rs = resourceServersMap.get(rsAppSlug)!;
+      rs[rest.slug] = JSON.stringify(rest);
 
-      const rsElem = resourceServersMap.get(rsKey) as Record<string, string>;
-      const rsNameElem = resourceServersNameMap.get(rsNameKey) as Record<
-        string,
-        string
-      >;
-      const rsSlugElem = resourceServersSlugMap.get(rsSlugKey) as Record<
-        string,
-        string
-      >;
+      const rsLookup = resourceServersLookupMap.get(rsLookupKey)!;
+      rsLookup[rest.name] = rest.slug;
 
-      rsElem[rest.clientId] = JSON.stringify(rest);
-      rsNameElem[rest.name] = rest.clientId;
-      rsSlugElem[rest.slug as string] = rest.clientId;
-
-      globalLookupMap[rest.clientId] = application.clientId;
+      lookupMap[rest.clientId] = rest.slug;
+      lookupAppMap[rest.clientId] = application.slug;
     });
 
     return [
+      MapToHashKeyValue(lookupKey, lookupMap),
+      MapToHashKeyValue(lookupAppKey, lookupAppMap),
       MapToHashKeyValueArray(resourceServersMap),
-      MapToHashKeyValueArray(resourceServersNameMap),
-      MapToHashKeyValueArray(resourceServersSlugMap),
-      MapToHashKeyValue(globalLookupKey, globalLookupMap),
+      MapToHashKeyValueArray(resourceServersLookupMap),
     ] as J;
   }
 
   async save<J>(data: J): Promise<void> {
     const pipeline = this.redisService.pipeline();
 
-    const [
-      resourceServers,
-      resourceServersNames,
-      resourceServersSlugs,
-      lookupHash,
-    ] = data as [HashKeyValue[], HashKeyValue[], HashKeyValue[], HashKeyValue];
+    const [lookupMap, lookupAppMap, resourceServers, resourceServersLookup] =
+      data as [HashKeyValue, HashKeyValue, HashKeyValue[], HashKeyValue[]];
 
+    this.redisService.hsetToPipeline(pipeline, lookupMap);
+    this.redisService.hsetToPipeline(pipeline, lookupAppMap);
     this.redisService.mhsetToPipeline(pipeline, resourceServers);
-    this.redisService.mhsetToPipeline(pipeline, resourceServersSlugs);
-    this.redisService.mhsetToPipeline(pipeline, resourceServersNames);
-
-    if (lookupHash.values.length > 0)
-      this.redisService.hsetToPipeline(pipeline, lookupHash);
+    this.redisService.mhsetToPipeline(pipeline, resourceServersLookup);
 
     await this.redisService.execPipeline(pipeline);
   }

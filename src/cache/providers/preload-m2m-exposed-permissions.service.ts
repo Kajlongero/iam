@@ -12,8 +12,8 @@ import type { Application, Permission, ResourceServer } from "generated/prisma";
 
 interface IExposedPermissions {
   permission: Pick<Permission, "name">;
-  application: Pick<Application, "clientId">;
-  resourceServer: Pick<ResourceServer, "clientId">;
+  application: Pick<Application, "clientId" | "slug">;
+  resourceServer: Pick<ResourceServer, "clientId" | "slug">;
 }
 
 @Injectable()
@@ -59,8 +59,8 @@ export class PreloadM2MExposedPermissionsService
 
       const key =
         this.cacheKeysService.getApplicationResourceServerExposedPermissionsKey(
-          application.clientId,
-          resourceServer.clientId
+          application.slug,
+          resourceServer.slug
         );
 
       if (!map.has(key)) map.set(key, new Set());
@@ -98,11 +98,13 @@ export class PreloadM2MExposedPermissionsService
         isActive: true,
         application: {
           select: {
+            slug: true,
             clientId: true,
           },
         },
         resourceServer: {
           select: {
+            slug: true,
             clientId: true,
           },
         },

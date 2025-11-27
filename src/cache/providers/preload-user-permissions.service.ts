@@ -14,7 +14,7 @@ import type { HashKeyValue } from "src/redis/interfaces/hash.interface";
 import type { Application, Permission, Role } from "generated/prisma";
 
 export interface IPermissionRules extends Permission {
-  application?: Pick<Application, "clientId"> | null;
+  application?: Pick<Application, "clientId" | "slug"> | null;
   permissionAssignmentRules: {
     role: Pick<Role, "id" | "name">;
   }[];
@@ -46,6 +46,7 @@ export class PreloadUserPermissionsService
       include: {
         application: {
           select: {
+            slug: true,
             clientId: true,
           },
         },
@@ -105,9 +106,9 @@ export class PreloadUserPermissionsService
         ...permission
       } = p;
 
-      const cacheKey = application?.clientId
+      const cacheKey = application?.slug
         ? this.cacheKeysService.getApplicationsUserPermissionsKey(
-            application.clientId
+            application.slug
           )
         : globalKeyName;
 

@@ -14,7 +14,7 @@ import type { CachePreloader } from "../interfaces/preloaders.interface";
 import type { Application, Prisma } from "generated/prisma";
 
 interface IApplicationObjectMethod extends IObjectMethod {
-  application: Pick<Application, "clientId">;
+  application: Pick<Application, "clientId" | "slug">;
 }
 
 @Injectable()
@@ -36,6 +36,7 @@ export class PreloadObjectMethodsService
       include: {
         application: {
           select: {
+            slug: true,
             clientId: true,
           },
         },
@@ -64,7 +65,7 @@ export class PreloadObjectMethodsService
       const { application, methods, ...rest } = item;
 
       const key = this.cacheKeysService.getApplicationsObjectKey(
-        application.clientId,
+        application.slug,
         rest.name
       );
 

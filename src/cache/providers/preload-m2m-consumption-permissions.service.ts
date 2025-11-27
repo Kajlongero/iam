@@ -12,9 +12,9 @@ import type { Application, Permission, ResourceServer } from "generated/prisma";
 
 interface IConsumptionPermissions {
   permission: Pick<Permission, "name">;
-  clientResourceServer: Pick<ResourceServer, "clientId">;
-  receptorResourceServer: Pick<ResourceServer, "clientId"> & {
-    application: Pick<Application, "clientId">;
+  clientResourceServer: Pick<ResourceServer, "clientId" | "slug">;
+  receptorResourceServer: Pick<ResourceServer, "clientId" | "slug"> & {
+    application: Pick<Application, "clientId" | "slug">;
   };
 }
 
@@ -61,9 +61,9 @@ export class PreloadM2MConsumptionPermissionsService
 
       const key =
         this.cacheKeysService.getApplicationResourceServerConsumptionPermissionsKey(
-          receptorResourceServer.application.clientId,
-          receptorResourceServer.clientId,
-          clientResourceServer.clientId
+          receptorResourceServer.application.slug,
+          receptorResourceServer.slug,
+          clientResourceServer.slug
         );
 
       if (!map.has(key)) map.set(key, {});
@@ -108,14 +108,17 @@ export class PreloadM2MConsumptionPermissionsService
           },
           clientResourceServer: {
             select: {
+              slug: true,
               clientId: true,
             },
           },
           receptorResourceServer: {
             select: {
+              slug: true,
               clientId: true,
               application: {
                 select: {
+                  slug: true,
                   clientId: true,
                 },
               },

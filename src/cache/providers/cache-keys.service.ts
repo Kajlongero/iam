@@ -161,6 +161,10 @@ export class CacheKeysService {
     return `iam:application:${appSlug}:object:${objectName}`;
   }
 
+  getApplicationsM2MTokensKey(appSlug: string, rsSlug: string, token: string) {
+    return `iam:application:${appSlug}:resource_servers:${rsSlug}:m2m_tokens:${token}`;
+  }
+
   /**
    * Retrieve blocked ips key for rate limit
    * @param ip IP Address
@@ -193,5 +197,9 @@ export class CacheKeysService {
    */
   getAttemptsOfClientByClientId(clientId: string) {
     return `iam:security:rate-limit:attempts:${clientId}`;
+  }
+
+  getBlacklistedTokensKey(token: string) {
+    return `iam:security:blacklist:tokens:${token}`;
   }
 }

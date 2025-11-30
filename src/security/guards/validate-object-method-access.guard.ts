@@ -43,12 +43,12 @@ export class ValidateObjectMethodAccessGuard implements CanActivate {
     const methodName =
       this.reflector.get<string>(IAMMethodKey, targetMthd) || targetMthd.name;
 
-    const IAMCoreUIClientId = this.cfgService.getOrThrow<string>(
-      IAM_CONSTANTS_ENVS.IAM_CORE_CLIENT_ID
+    const IAM_CORE_SLUG = this.cfgService.getOrThrow<string>(
+      IAM_CONSTANTS_ENVS.IAM_CORE_SLUG
     );
 
     const OBJECT_KEY = this.cacheKeysService.getApplicationsObjectKey(
-      IAMCoreUIClientId,
+      IAM_CORE_SLUG,
       objectName
     );
 

@@ -21,7 +21,7 @@ import { CryptoModule } from "src/crypto/crypto.module";
 import { SecurityService } from "./security.service";
 import { SecurityController } from "./security.controller";
 import { LocalStrategyService } from "./strategies/local.strategy.service";
-import { S2sJwtStrategyService } from "./strategies/s2s-jwt.strategy.service";
+import { M2mJwtStrategyService } from "./strategies/m2m-jwt.strategy.service";
 import { AccessJwtStrategyService } from "./strategies/access-jwt.strategy.service";
 import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.service";
 
@@ -30,7 +30,7 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
     ConfigModule,
     JwtModule.register({}),
     PassportModule.register({
-      defaultStrategy: "s2s-jwt",
+      defaultStrategy: "m2m-jwt",
     }),
     CacheModule,
     CryptoModule,
@@ -38,30 +38,30 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
   providers: [
     ConfigService,
     LocalStrategyService,
-    S2sJwtStrategyService,
+    M2mJwtStrategyService,
     AccessJwtStrategyService,
     RefreshJwtStrategyService,
     {
       inject: [ConfigService],
-      provide: JWT_TOKEN_PROVIDERS.S2S_TOKEN_PROVIDER,
+      provide: JWT_TOKEN_PROVIDERS.M2M_TOKEN_PROVIDER,
       useFactory: (configService: ConfigService) => {
-        const s2sTokenSecret: string = configService.getOrThrow(
+        const rawPrivate: string = configService.getOrThrow(
           JWT_CONSTANTS.RSA_PRIVATE_KEY_SECRET
         );
+        const privateKey = rawPrivate.replace(/\\n/g, "\n");
+
         const expiresIn: StringValue = configService.getOrThrow(
           JWT_EXPIRATION_TIMES.S2S_TOKEN_EXPIRATION_TIME
         );
 
         const iss: string = configService.getOrThrow(JWT_SIGN_OPTIONS.ISSUER);
-        const aud: string = configService.getOrThrow(JWT_SIGN_OPTIONS.AUDIENCE);
 
         const alg = JWT_ALGORITHMS.S2S_TOKEN;
 
         return new JwtService({
-          privateKey: s2sTokenSecret,
+          privateKey,
           signOptions: {
             issuer: iss,
-            audience: aud,
             algorithm: alg as "RS256",
             expiresIn,
           },
@@ -72,23 +72,23 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
       inject: [ConfigService],
       provide: JWT_TOKEN_PROVIDERS.ACCESS_TOKEN_PROVIDER,
       useFactory: (configService: ConfigService) => {
-        const accessTokenSecret: string = configService.getOrThrow(
+        const rawPrivate: string = configService.getOrThrow(
           JWT_CONSTANTS.RSA_PRIVATE_KEY_SECRET
         );
+        const privateKey = rawPrivate.replace(/\\n/g, "\n");
+
         const expiresIn: StringValue = configService.getOrThrow(
           JWT_EXPIRATION_TIMES.ACCESS_TOKEN_EXPIRATION_TIME
         );
 
         const iss: string = configService.getOrThrow(JWT_SIGN_OPTIONS.ISSUER);
-        const aud: string = configService.getOrThrow(JWT_SIGN_OPTIONS.AUDIENCE);
 
         const alg = JWT_ALGORITHMS.ACCESS_TOKEN;
 
         return new JwtService({
-          privateKey: accessTokenSecret,
+          privateKey,
           signOptions: {
             issuer: iss,
-            audience: aud,
             algorithm: alg as "RS256",
             expiresIn,
           },
@@ -106,7 +106,6 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
           JWT_EXPIRATION_TIMES.REFRESH_TOKEN_EXPIRATION_TIME
         );
         const iss: string = configService.getOrThrow(JWT_SIGN_OPTIONS.ISSUER);
-        const aud: string = configService.getOrThrow(JWT_SIGN_OPTIONS.AUDIENCE);
 
         const alg = JWT_ALGORITHMS.REFRESH_TOKEN;
 
@@ -114,7 +113,6 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
           secret: refreshTokenSecret,
           signOptions: {
             issuer: iss,
-            audience: aud,
             algorithm: alg as "HS256",
             expiresIn,
           },
@@ -127,10 +125,10 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
     JwtModule,
     PassportModule,
     LocalStrategyService,
-    S2sJwtStrategyService,
+    M2mJwtStrategyService,
     AccessJwtStrategyService,
     RefreshJwtStrategyService,
-    JWT_TOKEN_PROVIDERS.S2S_TOKEN_PROVIDER,
+    JWT_TOKEN_PROVIDERS.M2M_TOKEN_PROVIDER,
     JWT_TOKEN_PROVIDERS.ACCESS_TOKEN_PROVIDER,
     JWT_TOKEN_PROVIDERS.REFRESH_TOKEN_PROVIDER,
   ],

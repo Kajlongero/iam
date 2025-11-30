@@ -388,10 +388,11 @@ model ResourceServer {
   clientId                       String                                @map("client_id") @db.VarChar(96)
   clientSecret                   String                                @map("client_secret") @db.VarChar(255)
   isActive                       Boolean                               @default(true) @map("is_active")
-  isGateway                      Boolean                               @default(false) @map("is_gateway")
   applicationId                  Int                                   @map("application_id")
   createdAt                      DateTime                              @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt                      DateTime?                             @map("updated_at") @db.Timestamptz(6)
+  isGateway                      Boolean?                              @default(false) @map("is_gateway")
+  basePath                       String?                               @map("base_path") @db.VarChar(255)
   receivedConsumptionPermissions ResourceServerConsumptionPermission[] @relation("ResourceServerReceivedConsumptionPermissions")
   sentConsumptionPermissions     ResourceServerConsumptionPermission[] @relation("ResourceServerSentConsumptionPermissions")
   exposedPermissions             ResourceServerExposedPermission[]
@@ -401,6 +402,7 @@ model ResourceServer {
   application                    Application                           @relation(fields: [applicationId], references: [id])
 
   @@unique([applicationId, name])
+  @@unique([applicationId, basePath], map: "idx_uq_application_base_path")
   @@index([slug], map: "idx_resource_servers_slug")
   @@map("resource_servers")
   @@schema("management")

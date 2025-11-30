@@ -47,12 +47,14 @@ CREATE TABLE IF NOT EXISTS
     slug VARCHAR(128) NOT NULL UNIQUE,
     client_id VARCHAR(96) NOT NULL,
     client_secret VARCHAR(255) NOT NULL,
+    base_path VARCHAR(255),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     is_gateway BOOLEAN NOT NULL DEFAULT FALSE,
     application_id INTEGER NOT NULL REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ,
-    UNIQUE (application_id, name)
+    UNIQUE (application_id, name),
+    UNIQUE (application_id, base_path)
   );
 
 CREATE INDEX idx_resource_servers_slug ON management.resource_servers (slug);

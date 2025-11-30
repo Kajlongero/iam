@@ -44,7 +44,12 @@ export class I18nExceptionFilter implements ExceptionFilter {
       if (msg) errorBody.message = msg.message;
     }
 
+    const errorMessage = errorBody.message;
+
+    delete errorBody.message;
+
     response.status(status).json({
+      message: errorMessage,
       errorCode,
       ...errorBody,
       metadata: {

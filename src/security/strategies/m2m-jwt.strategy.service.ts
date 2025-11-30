@@ -6,9 +6,9 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { JWT_CONSTANTS } from "../constants/jwt.constants";
 
 @Injectable()
-export class S2sJwtStrategyService extends PassportStrategy(
+export class M2mJwtStrategyService extends PassportStrategy(
   Strategy,
-  "s2s-jwt"
+  "m2m-jwt"
 ) {
   constructor(private readonly configService: ConfigService) {
     super({

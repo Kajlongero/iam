@@ -7,6 +7,8 @@ export const ERROR_CODES = {
 
   RS_MISSING_CREDENTIALS: "RS_MISSING_CREDENTIALS",
   RS_INVALID_CREDENTIALS: "RS_INVALID_CREDENTIALS",
+  RS_INVALID_EXCHANGE_TOKEN_REQUEST:
+    "RESOURCE_SERVER_INVALID_EXCHANGE_TOKEN_REQUEST",
 
   AUTH_FAILED: "AUTH_FAILED",
   AUTH_UNAUTHORIZED: "AUTH_UNAUTHORIZED",
@@ -30,6 +32,9 @@ export const HTTP_RESPONSES = {
     },
     [ERROR_CODES.RS_INVALID_CREDENTIALS]: {
       message: "Invalid client credentials",
+    },
+    [ERROR_CODES.RS_INVALID_EXCHANGE_TOKEN_REQUEST]: {
+      message: "Invalid exchange token request",
     },
     [ERROR_CODES.AUTH_FAILED]: {
       message: "Authentication failed",
@@ -60,6 +65,9 @@ export const HTTP_RESPONSES = {
     },
     [ERROR_CODES.RS_INVALID_CREDENTIALS]: {
       message: "Credenciales de cliente inválidas",
+    },
+    [ERROR_CODES.RS_INVALID_EXCHANGE_TOKEN_REQUEST]: {
+      message: "Solicitud de intercambio de token de intercambio inválida",
     },
     [ERROR_CODES.AUTH_FAILED]: {
       message: "Autenticación fallida",

@@ -9,6 +9,7 @@ import {
 
 import { TokenService } from "./token.service";
 
+import { Public } from "src/security/decorators/public-route.decorator";
 import { GetIAMResources } from "./decorators/get-resource-server.decorator";
 
 import { ExchangeTokenDto } from "./dtos/exchange-token.dto";
@@ -23,6 +24,7 @@ export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
 
   @Post("exchange")
+  @Public()
   @HttpCode(HttpStatus.OK)
   @UseGuards(ValidateCredentialsExchangeTokenGuard)
   exchange(

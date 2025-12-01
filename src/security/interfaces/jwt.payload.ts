@@ -8,6 +8,7 @@ interface BasePayload {
 
 export interface JwtUserPayload extends BasePayload {
   jti: string;
+  type: "user";
   roles: string[];
 }
 

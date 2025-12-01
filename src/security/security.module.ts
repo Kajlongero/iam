@@ -11,6 +11,7 @@ import { JWT_TOKEN_PROVIDERS } from "./constants/provider-tokens.constants";
 import {
   JWT_CONSTANTS,
   JWT_ALGORITHMS,
+  JWT_STRATEGIES,
   JWT_SIGN_OPTIONS,
   JWT_EXPIRATION_TIMES,
 } from "./constants/jwt.constants";
@@ -30,7 +31,7 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
     ConfigModule,
     JwtModule.register({}),
     PassportModule.register({
-      defaultStrategy: "m2m-jwt",
+      defaultStrategy: JWT_STRATEGIES.M2M_TOKEN,
     }),
     CacheModule,
     CryptoModule,

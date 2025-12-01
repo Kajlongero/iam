@@ -51,12 +51,12 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
         const privateKey = rawPrivate.replace(/\\n/g, "\n");
 
         const expiresIn: StringValue = configService.getOrThrow(
-          JWT_EXPIRATION_TIMES.S2S_TOKEN_EXPIRATION_TIME
+          JWT_EXPIRATION_TIMES.M2M_TOKEN_EXPIRATION_TIME
         );
 
         const iss: string = configService.getOrThrow(JWT_SIGN_OPTIONS.ISSUER);
 
-        const alg = JWT_ALGORITHMS.S2S_TOKEN;
+        const alg = JWT_ALGORITHMS.M2M_TOKEN;
 
         return new JwtService({
           privateKey,

@@ -14,6 +14,22 @@ export const ERROR_CODES = {
   AUTH_UNAUTHORIZED: "AUTH_UNAUTHORIZED",
   AUTH_INVALID_CREDENTIALS: "AUTH_INVALID_CREDENTIALS",
   AUTH_SERVICE_UNAVAILABLE: "AUTH_SERVICE_UNAVAILABLE",
+
+  AUTH_INVALID_ISSUER: "AUTH_INVALID_ISSUER",
+  AUTH_INVALID_AUDIENCE: "AUTH_INVALID_AUDIENCE",
+
+  AUTH_MISSING_M2M_TOKEN: "AUTH_M2M_MISSING_TOKEN",
+  AUTH_INVALID_M2M_TOKEN: "AUTH_INVALID_M2M_TOKEN",
+  AUTH_M2M_TOKEN_EXPIRED: "AUTH_M2M_TOKEN_EXPIRED",
+  AUTH_INVALID_M2M_TOKEN_TYPE: "AUTH_INVALID_M2M_TOKEN_TYPE",
+  AUTH_INVALID_M2M_TOKEN_TYPE_REQUIRED: "AUTH_INVALID_M2M_TOKEN_TYPE_REQUIRED",
+
+  AUTH_MISSING_USER_TOKEN: "AUTH_USER_MISSING_TOKEN",
+  AUTH_INVALID_USER_TOKEN: "AUTH_INVALID_USER_TOKEN",
+  AUTH_USER_TOKEN_EXPIRED: "AUTH_USER_TOKEN_EXPIRED",
+  AUTH_INVALID_USER_TOKEN_TYPE: "AUTH_INVALID_USER_TOKEN_TYPE",
+  AUTH_INVALID_USER_TOKEN_TYPE_REQUIRED:
+    "AUTH_INVALID_USER_TOKEN_TYPE_REQUIRED",
 } as const;
 
 export const HTTP_RESPONSES = {
@@ -48,6 +64,42 @@ export const HTTP_RESPONSES = {
     [ERROR_CODES.AUTH_SERVICE_UNAVAILABLE]: {
       message: "Authentication service unavailable",
     },
+    [ERROR_CODES.AUTH_INVALID_ISSUER]: {
+      message: "Token invalid issuer",
+    },
+    [ERROR_CODES.AUTH_INVALID_AUDIENCE]: {
+      message: "Token invalid audience",
+    },
+    [ERROR_CODES.AUTH_MISSING_M2M_TOKEN]: {
+      message: "M2M Token required",
+    },
+    [ERROR_CODES.AUTH_INVALID_M2M_TOKEN]: {
+      message: "Invalid M2M Token",
+    },
+    [ERROR_CODES.AUTH_M2M_TOKEN_EXPIRED]: {
+      message: "M2M Token expired",
+    },
+    [ERROR_CODES.AUTH_INVALID_M2M_TOKEN_TYPE]: {
+      message: "Invalid M2M Token type",
+    },
+    [ERROR_CODES.AUTH_INVALID_M2M_TOKEN_TYPE_REQUIRED]: {
+      message: "M2M Token type required",
+    },
+    [ERROR_CODES.AUTH_MISSING_USER_TOKEN]: {
+      message: "User Token required",
+    },
+    [ERROR_CODES.AUTH_INVALID_USER_TOKEN]: {
+      message: "Invalid User Token",
+    },
+    [ERROR_CODES.AUTH_USER_TOKEN_EXPIRED]: {
+      message: "User Token expired",
+    },
+    [ERROR_CODES.AUTH_INVALID_USER_TOKEN_TYPE]: {
+      message: "Invalid User Token type",
+    },
+    [ERROR_CODES.AUTH_INVALID_USER_TOKEN_TYPE_REQUIRED]: {
+      message: "User Token type required",
+    },
   },
   es: {
     [ERROR_CODES.SECURITY_RESOURCE_DISABLED]: {
@@ -80,6 +132,42 @@ export const HTTP_RESPONSES = {
     },
     [ERROR_CODES.AUTH_SERVICE_UNAVAILABLE]: {
       message: "Servicio de autenticación no disponible",
+    },
+    [ERROR_CODES.AUTH_INVALID_ISSUER]: {
+      message: "Emisor del token inválido",
+    },
+    [ERROR_CODES.AUTH_INVALID_AUDIENCE]: {
+      message: "Audiencia del token inválida",
+    },
+    [ERROR_CODES.AUTH_MISSING_M2M_TOKEN]: {
+      message: "Token M2M requerido",
+    },
+    [ERROR_CODES.AUTH_M2M_TOKEN_EXPIRED]: {
+      message: "Token M2M expirado",
+    },
+    [ERROR_CODES.AUTH_INVALID_M2M_TOKEN]: {
+      message: "Token M2M inválido",
+    },
+    [ERROR_CODES.AUTH_INVALID_M2M_TOKEN_TYPE]: {
+      message: "Token de tipo M2M inválido",
+    },
+    [ERROR_CODES.AUTH_INVALID_M2M_TOKEN_TYPE_REQUIRED]: {
+      message: "Token de tipo M2M requerido",
+    },
+    [ERROR_CODES.AUTH_MISSING_USER_TOKEN]: {
+      message: "Token de usuario requerido",
+    },
+    [ERROR_CODES.AUTH_INVALID_USER_TOKEN]: {
+      message: "Token de usuario inválido",
+    },
+    [ERROR_CODES.AUTH_USER_TOKEN_EXPIRED]: {
+      message: "Token de usuario expirado",
+    },
+    [ERROR_CODES.AUTH_INVALID_USER_TOKEN_TYPE]: {
+      message: "Token de usuario de tipo inválido",
+    },
+    [ERROR_CODES.AUTH_INVALID_USER_TOKEN_TYPE_REQUIRED]: {
+      message: "Token de usuario de tipo requerido",
     },
   },
 } as const;

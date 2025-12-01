@@ -34,4 +34,4 @@ export const JWT_STRATEGIES = {
   M2M_TOKEN: "M2M_TOKEN",
   ACCESS_TOKEN: "ACCESS_TOKEN",
   REFRESH_TOKEN: "REFRESH_TOKEN",
-};
+} as const;

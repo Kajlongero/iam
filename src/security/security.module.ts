@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 
-import { PassportModule } from "@nestjs/passport";
 import { JwtModule, JwtService } from "@nestjs/jwt";
 
 import { StringValue } from "ms";
@@ -11,7 +10,6 @@ import { JWT_TOKEN_PROVIDERS } from "./constants/provider-tokens.constants";
 import {
   JWT_CONSTANTS,
   JWT_ALGORITHMS,
-  JWT_STRATEGIES,
   JWT_SIGN_OPTIONS,
   JWT_EXPIRATION_TIMES,
 } from "./constants/jwt.constants";
@@ -21,27 +19,11 @@ import { CryptoModule } from "src/crypto/crypto.module";
 
 import { SecurityService } from "./security.service";
 import { SecurityController } from "./security.controller";
-import { LocalStrategyService } from "./strategies/local.strategy.service";
-import { M2mJwtStrategyService } from "./strategies/m2m-jwt.strategy.service";
-import { AccessJwtStrategyService } from "./strategies/access-jwt.strategy.service";
-import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.service";
 
 @Module({
-  imports: [
-    ConfigModule,
-    JwtModule.register({}),
-    PassportModule.register({
-      defaultStrategy: JWT_STRATEGIES.M2M_TOKEN,
-    }),
-    CacheModule,
-    CryptoModule,
-  ],
+  imports: [ConfigModule, JwtModule.register({}), CacheModule, CryptoModule],
   providers: [
     ConfigService,
-    LocalStrategyService,
-    M2mJwtStrategyService,
-    AccessJwtStrategyService,
-    RefreshJwtStrategyService,
     {
       inject: [ConfigService],
       provide: JWT_TOKEN_PROVIDERS.M2M_TOKEN_PROVIDER,
@@ -50,6 +32,11 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
           JWT_CONSTANTS.RSA_PRIVATE_KEY_SECRET
         );
         const privateKey = rawPrivate.replace(/\\n/g, "\n");
+
+        const rawPublic = configService.getOrThrow<string>(
+          JWT_CONSTANTS.RSA_PUBLIC_KEY_SECRET
+        );
+        const publicKey = rawPublic.replace(/\\n/g, "\n");
 
         const expiresIn: StringValue = configService.getOrThrow(
           JWT_EXPIRATION_TIMES.M2M_TOKEN_EXPIRATION_TIME
@@ -60,6 +47,7 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
         const alg = JWT_ALGORITHMS.M2M_TOKEN;
 
         return new JwtService({
+          publicKey,
           privateKey,
           signOptions: {
             issuer: iss,
@@ -78,15 +66,21 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
         );
         const privateKey = rawPrivate.replace(/\\n/g, "\n");
 
+        const rawPublic = configService.getOrThrow<string>(
+          JWT_CONSTANTS.RSA_PUBLIC_KEY_SECRET
+        );
+        const publicKey = rawPublic.replace(/\\n/g, "\n");
+
         const expiresIn: StringValue = configService.getOrThrow(
-          JWT_EXPIRATION_TIMES.ACCESS_TOKEN_EXPIRATION_TIME
+          JWT_EXPIRATION_TIMES.M2M_TOKEN_EXPIRATION_TIME
         );
 
         const iss: string = configService.getOrThrow(JWT_SIGN_OPTIONS.ISSUER);
 
-        const alg = JWT_ALGORITHMS.ACCESS_TOKEN;
+        const alg = JWT_ALGORITHMS.M2M_TOKEN;
 
         return new JwtService({
+          publicKey,
           privateKey,
           signOptions: {
             issuer: iss,
@@ -124,11 +118,6 @@ import { RefreshJwtStrategyService } from "./strategies/refresh-jwt.strategy.ser
   ],
   exports: [
     JwtModule,
-    PassportModule,
-    LocalStrategyService,
-    M2mJwtStrategyService,
-    AccessJwtStrategyService,
-    RefreshJwtStrategyService,
     JWT_TOKEN_PROVIDERS.M2M_TOKEN_PROVIDER,
     JWT_TOKEN_PROVIDERS.ACCESS_TOKEN_PROVIDER,
     JWT_TOKEN_PROVIDERS.REFRESH_TOKEN_PROVIDER,

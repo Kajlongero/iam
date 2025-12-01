@@ -1,4 +1,5 @@
 import { v7 as uuidv7 } from "uuid";
+import ms, { StringValue } from "ms";
 
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
@@ -32,6 +33,7 @@ import type {
   ExchangeTokenResults,
 } from "./interfaces/exchange-token.interface";
 import { JWT_TOKEN_PROVIDERS } from "src/security/constants/provider-tokens.constants";
+import { JWT_EXPIRATION_TIMES } from "src/security/constants/jwt.constants";
 
 @Injectable()
 export class TokenService {
@@ -114,6 +116,7 @@ export class TokenService {
       ]
     );
     const data = JSON.parse(results as string) as ExchangeTokenResults;
+
     this.validateErrors(data);
 
     const jti = uuidv7();
@@ -131,7 +134,19 @@ export class TokenService {
       .setAppIssSlug(origin.appSlug)
       .build();
 
-    return this.m2mJwtService.sign(payload);
+    const accessToken = this.m2mJwtService.sign(payload);
+
+    const expiresIn: StringValue = this.configService.getOrThrow(
+      JWT_EXPIRATION_TIMES.M2M_TOKEN_EXPIRATION_TIME
+    );
+
+    return {
+      access_token: accessToken,
+      token_type: "Bearer",
+      expires_in: ms(expiresIn) / 1000,
+      scope: rawScopes,
+      audiences: rawAuds,
+    };
   }
 
   private getRawAuds(data: ExchangeTokenResults) {

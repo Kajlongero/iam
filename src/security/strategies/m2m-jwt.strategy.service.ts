@@ -3,12 +3,12 @@ import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 
-import { JWT_CONSTANTS } from "../constants/jwt.constants";
+import { JWT_CONSTANTS, JWT_STRATEGIES } from "../constants/jwt.constants";
 
 @Injectable()
 export class M2mJwtStrategyService extends PassportStrategy(
   Strategy,
-  "m2m-jwt"
+  JWT_STRATEGIES.M2M_TOKEN
 ) {
   constructor(private readonly configService: ConfigService) {
     super({

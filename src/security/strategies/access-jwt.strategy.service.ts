@@ -3,12 +3,16 @@ import { ConfigService } from "@nestjs/config";
 
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { PassportStrategy } from "@nestjs/passport";
-import { JWT_CONSTANTS, JWT_EXTRACT_FIELDS } from "../constants/jwt.constants";
+import {
+  JWT_CONSTANTS,
+  JWT_STRATEGIES,
+  JWT_EXTRACT_FIELDS,
+} from "../constants/jwt.constants";
 
 @Injectable()
 export class AccessJwtStrategyService extends PassportStrategy(
   Strategy,
-  "access-jwt"
+  JWT_STRATEGIES.ACCESS_TOKEN
 ) {
   constructor(private readonly configService: ConfigService) {
     super({

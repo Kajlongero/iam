@@ -368,6 +368,7 @@ model Application {
   creatorUser                          User                                  @relation(fields: [creatorUserId], references: [id])
   status                               Status                                @relation(fields: [statusId], references: [id])
   resourceServers                      ResourceServer[]
+  applicationSecurityPolicies          ApplicationSecurityPolicies?
   applicationUsers                     ApplicationUser[]
   authorizationCodes                   AuthorizationCode[]
   sessions                             Session[]
@@ -543,5 +544,18 @@ model AuthorizationCode {
   @@id([code, applicationId])
   @@index([userId], map: "idx_auth_codes_user_id")
   @@map("authorization_codes")
+  @@schema("security")
+}
+
+model ApplicationSecurityPolicies {
+  applicationId               Int         @id @map("application_id")
+  lockoutDurationMinutes      Int         @default(30) @map("lockout_duration_minutes")
+  accessTokenLifetimeMinutes  Int         @default(15) @map("access_token_lifetime_minutes")
+  refreshTokenLifetimeMinutes Int         @default(129600) @map("refresh_token_lifetime_minutes")
+  createdAt                   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAtt                  DateTime?   @map("updated_at") @db.Timestamptz(6)
+  applications                Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("application_security_policies")
   @@schema("security")
 }

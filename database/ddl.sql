@@ -41,6 +41,21 @@ CREATE INDEX idx_applications_slug ON management.applications (slug);
 CREATE INDEX idx_applications_client_id ON management.applications (client_id);
 
 CREATE TABLE IF NOT EXISTS
+  security.application_security_policies (
+    application_id INTEGER PRIMARY KEY REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    lockout_duration_minutes INTEGER NOT NULL DEFAULT 30,
+    access_token_lifetime_minutes INTEGER NOT NULL DEFAULT 15,
+    refresh_token_lifetime_minutes INTEGER NOT NULL DEFAULT 129600,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    CHECK (access_token_lifetime_minutes >= 5),
+    CHECK (refresh_token_lifetime_minutes >= 15),
+    CHECK (
+      refresh_token_lifetime_minutes >= access_token_lifetime_minutes + 10
+    )
+  );
+
+CREATE TABLE IF NOT EXISTS
   management.resource_servers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(96) NOT NULL,
@@ -170,6 +185,9 @@ CREATE TABLE IF NOT EXISTS
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255),
+    is_locked BOOLEAN NOT NULL DEFAULT FALSE,
+    is_banned BOOLEAN NOT NULL DEFAULT FALSE,
+    is_restricted BOOLEAN NOT NULL DEFAULT FALSE,
     last_login_at TIMESTAMPTZ,
     locked_end_time TIMESTAMPTZ,
     failed_login_attempts INTEGER NOT NULL DEFAULT 0,

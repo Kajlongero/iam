@@ -1,0 +1,11 @@
+------------------------------------------------------------
+-- Permissions for Applications
+------------------------------------------------------------
+-- iam-api:applications:read
+-- iam-api:applications:create
+-- iam-api:applications:update
+-- iam-api:applications:delete
+-- iam-api:applications:activate
+-- iam-api:applications:deactivate
+-- iam-api:applications:rotate_secret
+-- iam-api:applications:manage_credentials

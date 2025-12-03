@@ -1,0 +1,8 @@
+------------------------------------------------------------
+-- Permissions for Permissions
+------------------------------------------------------------
+-- iam-api:permissions:read
+-- iam-api:permissions:create
+-- iam-api:permissions:update
+-- iam-api:permissions:delete
+-- iam-api:permissions:manage_assignment

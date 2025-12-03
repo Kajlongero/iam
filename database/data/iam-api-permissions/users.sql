@@ -1,0 +1,9 @@
+------------------------------------------------------------
+-- Permissions for Users
+------------------------------------------------------------
+-- iam-api:users:read
+-- iam-api:users:create
+-- iam-api:users:update
+-- iam-api:users:delete
+-- iam-api:users:manage_security
+-- iam-api:users:toggle_active_status

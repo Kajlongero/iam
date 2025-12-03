@@ -1,0 +1,8 @@
+------------------------------------------------------------
+-- Permissions for Roles
+------------------------------------------------------------
+-- iam-api:roles:read
+-- iam-api:roles:create
+-- iam-api:roles:update
+-- iam-api:roles:delete
+-- iam-api:roles:manage_membership

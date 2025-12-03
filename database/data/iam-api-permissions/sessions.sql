@@ -1,0 +1,7 @@
+------------------------------------------------------------
+-- Permissions for Sessions
+------------------------------------------------------------
+-- iam-api:sessions:read	
+-- iam-api:sessions:read_data	
+-- iam-api:sessions:revoke
+-- iam-api:sessions:revoke_all

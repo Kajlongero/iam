@@ -1,0 +1,11 @@
+------------------------------------------------------------
+-- Permissions for Resource Servers
+------------------------------------------------------------
+-- iam-api:resource_servers:read
+-- iam-api:resource_servers:create
+-- iam-api:resource_servers:update
+-- iam-api:resource_servers:delete
+-- iam-api:resource_servers:deactivate
+-- iam-api:resource_servers:rotate_secret
+-- iam-api:resource_servers:expose_permissions
+-- iam-api:resource_servers:consume_permissions

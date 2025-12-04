@@ -79,6 +79,7 @@ model Permission {
   name                                 String                                @db.VarChar(128)
   description                          String?
   isEditable                           Boolean                               @default(true) @map("is_editable")
+  isDelegable                          Boolean                               @default(true) @map("is_delegable")
   isApiScope                           Boolean                               @default(false) @map("is_api_scope")
   applicationId                        Int?                                  @map("application_id")
   createdAt                            DateTime                              @default(now()) @map("created_at") @db.Timestamptz(6)

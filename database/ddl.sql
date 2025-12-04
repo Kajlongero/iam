@@ -250,6 +250,7 @@ CREATE TABLE IF NOT EXISTS
     name VARCHAR(128) NOT NULL,
     description TEXT,
     is_editable BOOLEAN NOT NULL DEFAULT TRUE,
+    is_delegable BOOLEAN NOT NULL DEFAULT TRUE,
     is_api_scope BOOLEAN NOT NULL DEFAULT FALSE,
     application_id INTEGER REFERENCES management.applications (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

@@ -148,4 +148,4 @@ VALUES
             client_id = 'IAM_CORE_PLACEHOLDER'
         )
     )
-  ),
+  );

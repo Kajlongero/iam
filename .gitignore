@@ -62,4 +62,4 @@ redis-data
 pgadmin-data
 postgres-data
 
-database/seeds/15.update.client-ids.sql
+database/seeds/00.update.client-ids.sql

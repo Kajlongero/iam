@@ -28,6 +28,7 @@ FROM
 WHERE
     p.name IN (
         'iam-api:policies:role_authority_manage',
+        'iam-api:policies:role_assignment_manage',
         'iam-api:policies:permission_assignment_manage'
     ) ON CONFLICT
 DO NOTHING;

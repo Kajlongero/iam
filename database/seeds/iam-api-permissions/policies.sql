@@ -2,7 +2,9 @@
 -- Permissions for Permissions
 ------------------------------------------------------------
 -- iam-api:policies:role_authority_manage
+-- iam-api:policies:role_assignment_manage
 -- iam-api:policies:permission_assignment_manage
+------------------------------------------------------------
 INSERT INTO
     access_control.permissions (
         name,
@@ -16,6 +18,14 @@ VALUES
     (
         'iam-api:policies:role_authority_manage',
         'Allows to manage the authority of a role on the platform.',
+        FALSE,
+        TRUE,
+        TRUE,
+        NULL
+    ),
+    (
+        'iam-api:policies:role_assignment_manage',
+        'Allows to manage the assignation of roles on the platform.',
         FALSE,
         TRUE,
         TRUE,

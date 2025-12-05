@@ -366,6 +366,25 @@ PARTITION BY
   LIST (application_id);
 
 CREATE TABLE IF NOT EXISTS
+  access_control.role_assignment_policy (
+    executing_role_id INTEGER NOT NULL,
+    assignable_role_id INTEGER NOT NULL,
+    application_id INTEGER,
+    is_allowed BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT pk_role_assignment_policy PRIMARY KEY (
+      executing_role_id,
+      assignable_role_id,
+      application_id
+    ),
+    CONSTRAINT fk_policy_executing_role FOREIGN KEY (executing_role_id) REFERENCES access_control.roles (id) ON DELETE CASCADE,
+    CONSTRAINT fk_policy_assignable_role FOREIGN KEY (assignable_role_id) REFERENCES access_control.roles (id) ON DELETE CASCADE,
+    CONSTRAINT fk_policy_application FOREIGN KEY (application_id) REFERENCES management.applications (id) ON DELETE CASCADE
+  );
+
+CREATE INDEX idx_role_assignment_lookup ON access_control.role_assignment_policy (executing_role_id, application_id);
+
+CREATE TABLE IF NOT EXISTS
   access_control.role_permissions (
     role_id INTEGER NOT NULL REFERENCES access_control.roles (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     permission_id INTEGER NOT NULL REFERENCES access_control.permissions (id) ON UPDATE CASCADE ON DELETE RESTRICT,

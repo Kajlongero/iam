@@ -70,11 +70,6 @@ CREATE TABLE
 VALUES
   IN (2);
 
-CREATE TABLE
-  security.application_users_food_app_3 PARTITION OF security.application_users FOR
-VALUES
-  IN (3);
-
 INSERT INTO
   security.application_users (user_id, application_id, status_id, username)
 VALUES

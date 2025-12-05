@@ -40,36 +40,4 @@ VALUES
     ),
     TRUE,
     TRUE
-  ),
-  (
-    'orders-service',
-    'orders-service_260dd00062ad0354',
-    'FOOD_APP_ORDER_SERVICE_CLIENT_ID',
-    '$argon2id$v=19$m=256,t=1,p=1$QYaK+QTJHBdu+xS6Bq6IvQ$nbOYt9n+sbUtqat7qKSHOXc2dE42Bhtq3K3EHidefUM', -- Hash
-    (
-      SELECT
-        id
-      FROM
-        management.applications
-      WHERE
-        client_id = 'FOOD_APP_PLACEHOLDER'
-    ),
-    TRUE,
-    FALSE
-  ),
-  (
-    'billing-service',
-    'billing-service_ecae3303e9ad8938',
-    'FOOD_APP_BILLING_SERVICE_CLIENT_ID',
-    '$argon2id$v=19$m=256,t=1,p=1$ZPcDajZJp9Q0D2dVNjtofw$+tG6xY1cq58bCrCWPSh0WeOO3f4Hz3me36a8CQDqm1A', -- Hash
-    (
-      SELECT
-        id
-      FROM
-        management.applications
-      WHERE
-        client_id = 'FOOD_APP_PLACEHOLDER'
-    ),
-    TRUE,
-    FALSE
   );

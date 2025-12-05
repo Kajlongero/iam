@@ -1,8 +1,0 @@
-------------------------------------------------------------
--- Permissions for Auth
-------------------------------------------------------------
--- iam-api:auth:ban_user
--- iam-api:auth:login_local
--- iam-api:auth:signup_local
--- iam-api:auth:reset_credentials
--- iam-api:auth:generate_mfa_secret

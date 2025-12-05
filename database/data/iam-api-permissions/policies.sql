@@ -1,5 +1,0 @@
-------------------------------------------------------------
--- Permissions for Permissions
-------------------------------------------------------------
--- iam-api:policies:role_authority_manage
--- iam-api:policies:permission_assignment_manage

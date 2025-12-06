@@ -4,7 +4,7 @@ WITH
             rs.id as rs_id,
             app.id as app_id
         FROM
-            access_control.resource_servers rs,
+            management.resource_servers rs,
             management.applications app
         WHERE
             rs.name = 'iam-system-api'

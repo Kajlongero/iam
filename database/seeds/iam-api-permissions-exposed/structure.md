@@ -14,7 +14,7 @@ WITH context AS (
     SELECT
         rs.id as rs_id,
         app.id as app_id
-    FROM access_control.resource_servers rs, management.applications app
+    FROM management.resource_servers rs, management.applications app
     WHERE rs.name = 'iam-system-api'
       AND app.slug = 'IAM_CORE_0cab234cddfa7162'
 )
@@ -35,7 +35,7 @@ ON CONFLICT DO NOTHING;
 Because these are permissions exposed within the IAM Core, the `receptor_resource_server_id` MUST BE get following this query:
 
 ```sql
-  SELECT id FROM access_control.resource_servers WHERE name = 'iam-system-api';
+  SELECT id FROM management.resource_servers WHERE name = 'iam-system-api';
 ```
 
 The `permission_id` must be calculated following this query:
